@@ -47,6 +47,7 @@ import id.harissabil.hayah.R
 import id.harissabil.hayah.ui.screens.onboarding.components.AuraBlobs
 import id.harissabil.hayah.ui.screens.onboarding.components.OnboardingPageContent
 import id.harissabil.hayah.ui.screens.onboarding.components.PagerIndicator
+import id.harissabil.hayah.ui.theme.CairoFamily
 
 @Composable
 fun OnboardingScreen(
@@ -101,7 +102,8 @@ fun OnboardingScreen(
                 Text(
                     text = "Hayah",
                     style = MaterialTheme.typography.headlineMedium.copy(fontSize = 28.sp),
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = CairoFamily,
                     color = MaterialTheme.colorScheme.primary,
                     letterSpacing = (-0.5).sp
                 )

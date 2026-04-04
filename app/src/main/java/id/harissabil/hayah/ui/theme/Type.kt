@@ -17,6 +17,7 @@ val provider = GoogleFont.Provider(
 
 val ManropeFont = GoogleFont("Manrope")
 val JakartaFont = GoogleFont("Plus Jakarta Sans")
+val CairoFont = GoogleFont("Cairo")
 
 val ManropeFamily = FontFamily(
     Font(googleFont = ManropeFont, fontProvider = provider, weight = FontWeight.Normal),
@@ -26,6 +27,11 @@ val ManropeFamily = FontFamily(
 val JakartaFamily = FontFamily(
     Font(googleFont = JakartaFont, fontProvider = provider, weight = FontWeight.Normal),
     Font(googleFont = JakartaFont, fontProvider = provider, weight = FontWeight.SemiBold)
+)
+
+val CairoFamily = FontFamily(
+    Font(googleFont = CairoFont, fontProvider = provider, weight = FontWeight.Normal),
+    Font(googleFont = CairoFont, fontProvider = provider, weight = FontWeight.Bold),
 )
 
 // Set of Material typography styles to start with

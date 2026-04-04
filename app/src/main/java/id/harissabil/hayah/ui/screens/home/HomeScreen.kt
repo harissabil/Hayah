@@ -40,6 +40,7 @@ import id.harissabil.hayah.R
 import id.harissabil.hayah.ui.screens.home.components.InstantReflectionButton
 import id.harissabil.hayah.ui.screens.home.components.PeriodSelector
 import id.harissabil.hayah.ui.screens.home.components.SpiritualRing
+import id.harissabil.hayah.ui.theme.CairoFamily
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -69,7 +70,8 @@ fun HomeScreen(
                             text = "Hayah",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            fontFamily = CairoFamily
                         )
                     }
                 },
