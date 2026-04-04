@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Hayah</string>
+    <string name="accessibility_service_description">Hayah reads on-screen text and notifications to detect meaningful moments in your day, then gently reminds you with a relevant Quranic verse.</string>
 </resources>
