@@ -1,0 +1,13 @@
+# Copy these entries into local.properties (or pass as -P Gradle properties)
+# and set values for your environment.
+
+HAYAH_USE_PRODUCTION=true
+HAYAH_CLIENT_ID_PROD=your-prod-client-id
+HAYAH_CLIENT_ID_TEST=your-test-client-id
+HAYAH_AUTH_ENDPOINT_PROD=https://oauth2.quran.foundation/oauth2/auth
+HAYAH_AUTH_ENDPOINT_TEST=https://prelive-oauth2.quran.foundation/oauth2/auth
+HAYAH_TOKEN_PROXY_URL=https://your-worker-domain/token
+HAYAH_REVOKE_PROXY_URL=https://your-worker-domain/revoke
+HAYAH_API_BASE_PROD=https://apis.quran.foundation/
+HAYAH_API_BASE_TEST=https://apis-prelive.quran.foundation/
+HAYAH_REDIRECT_URI=id.harissabil.hayah://callback
