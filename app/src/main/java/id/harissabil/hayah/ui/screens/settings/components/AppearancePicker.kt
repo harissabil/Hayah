@@ -38,7 +38,7 @@ fun AppearancePicker(
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         AppearanceCard(
-            label = "Light Mode",
+            label = "Light",
             isSelected = selected == AppTheme.LIGHT,
             modifier = Modifier.weight(1f),
             onClick = { onSelect(AppTheme.LIGHT) },
@@ -64,7 +64,7 @@ fun AppearancePicker(
             labelColor = MaterialTheme.colorScheme.onSurface,
         )
         AppearanceCard(
-            label = "Dark Mode",
+            label = "Dark",
             isSelected = selected == AppTheme.DARK,
             modifier = Modifier.weight(1f),
             onClick = { onSelect(AppTheme.DARK) },
@@ -82,7 +82,28 @@ fun AppearancePicker(
                     )
                 }
             },
-            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            labelColor = MaterialTheme.colorScheme.onSurface,
+        )
+        AppearanceCard(
+            label = "System",
+            isSelected = selected == AppTheme.SYSTEM,
+            modifier = Modifier.weight(1f),
+            onClick = { onSelect(AppTheme.SYSTEM) },
+            icon = {
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "A", style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            labelColor = MaterialTheme.colorScheme.onSurface,
         )
     }
 }
