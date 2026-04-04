@@ -1,6 +1,28 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) {
+        file.inputStream().use(::load)
+    }
+}
+
+fun requiredConfig(key: String): String {
+    return localProperties.getProperty(key)
+        ?: providers.gradleProperty(key).orNull
+        ?: throw GradleException("Missing required config '$key'. Add it to local.properties or pass -P$key=...")
+}
+
+fun quoted(value: String): String {
+    val escaped = value
+        .replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+    return "\"$escaped\""
 }
 
 android {
@@ -19,6 +41,20 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // AppAuth redirect scheme — matches the registered redirect URI
+        manifestPlaceholders["appAuthRedirectScheme"] = "id.harissabil.hayah"
+
+        buildConfigField("boolean", "USE_PRODUCTION", requiredConfig("HAYAH_USE_PRODUCTION"))
+        buildConfigField("String", "OAUTH_CLIENT_ID_PROD", quoted(requiredConfig("HAYAH_CLIENT_ID_PROD")))
+        buildConfigField("String", "OAUTH_CLIENT_ID_TEST", quoted(requiredConfig("HAYAH_CLIENT_ID_TEST")))
+        buildConfigField("String", "OAUTH_AUTH_ENDPOINT_PROD", quoted(requiredConfig("HAYAH_AUTH_ENDPOINT_PROD")))
+        buildConfigField("String", "OAUTH_AUTH_ENDPOINT_TEST", quoted(requiredConfig("HAYAH_AUTH_ENDPOINT_TEST")))
+        buildConfigField("String", "OAUTH_TOKEN_PROXY_URL", quoted(requiredConfig("HAYAH_TOKEN_PROXY_URL")))
+        buildConfigField("String", "OAUTH_REVOKE_PROXY_URL", quoted(requiredConfig("HAYAH_REVOKE_PROXY_URL")))
+        buildConfigField("String", "OAUTH_API_BASE_PROD", quoted(requiredConfig("HAYAH_API_BASE_PROD")))
+        buildConfigField("String", "OAUTH_API_BASE_TEST", quoted(requiredConfig("HAYAH_API_BASE_TEST")))
+        buildConfigField("String", "OAUTH_REDIRECT_URI", quoted(requiredConfig("HAYAH_REDIRECT_URI")))
     }
 
     buildTypes {
@@ -36,6 +72,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -51,6 +88,26 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui.text.google.fonts)
+
+    // Auth
+    implementation(libs.appauth)
+
+    // Networking
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging)
+
+    // Persistence
+    implementation(libs.androidx.datastore.preferences)
+
+    // Image loading
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network)
+
+    // DI
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
