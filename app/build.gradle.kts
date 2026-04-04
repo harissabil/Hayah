@@ -3,6 +3,9 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.google.gms.google.services)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.room)
 }
 
 val localProperties = Properties().apply {
@@ -76,6 +79,10 @@ android {
     }
 }
 
+room {
+    schemaDirectory("$projectDir/schemas")
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -99,6 +106,9 @@ dependencies {
 
     // Persistence
     implementation(libs.androidx.datastore.preferences)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
 
     // Image loading
     implementation(libs.coil.compose)
@@ -107,6 +117,12 @@ dependencies {
     // DI
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
+
+    // Firebase AI
+    implementation(libs.firebase.ai)
+
+    // Activity Recognition
+    implementation(libs.play.services.location)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
