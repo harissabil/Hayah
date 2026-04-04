@@ -1,8 +1,11 @@
 package id.harissabil.hayah.ui.screens.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,11 +30,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import id.harissabil.hayah.R
 import id.harissabil.hayah.ui.screens.home.components.InstantReflectionButton
 import id.harissabil.hayah.ui.screens.home.components.PeriodSelector
 import id.harissabil.hayah.ui.screens.home.components.SpiritualRing
@@ -51,12 +56,22 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Hayah",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo_hayah_transparent),
+                            contentDescription = null,
+                            modifier = Modifier.size(36.dp)
+                        )
+                        Text(
+                            text = "Hayah",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 },
                 actions = {
                     Box(
