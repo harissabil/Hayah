@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.RecordVoiceOver
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
@@ -44,7 +45,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import id.harissabil.hayah.ui.screens.settings.components.AppearancePicker
 import id.harissabil.hayah.ui.screens.settings.components.PermissionRow
 import id.harissabil.hayah.ui.screens.settings.components.SettingsIconBox
@@ -55,7 +56,8 @@ import id.harissabil.hayah.ui.screens.settings.components.SettingsSectionLabel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    viewModel: SettingsViewModel = viewModel(),
+    onLogout: () -> Unit = {},
+    viewModel: SettingsViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -210,6 +212,24 @@ fun SettingsScreen(
                             .background(MaterialTheme.colorScheme.primary)
                             .clickable {}.padding(horizontal = 16.dp, vertical = 6.dp)) {
                             Text("Enable", style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold, color = Color.White)
+                        }
+                    }
+                )
+            }
+
+            // Logout
+            SettingsSection(label = "Account") {
+                PermissionRow(
+                    iconBg = Color(0xFFFEE2E2), iconTint = Color(0xFFDC2626),
+                    icon = Icons.AutoMirrored.Filled.Logout,
+                    title = "Log Out", subtitle = "Sign out of Quran.com",
+                    action = {
+                        Box(modifier = Modifier.clip(CircleShape)
+                            .background(Color(0xFFDC2626))
+                            .clickable { onLogout() }
+                            .padding(horizontal = 16.dp, vertical = 6.dp)) {
+                            Text("Log Out", style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold, color = Color.White)
                         }
                     }

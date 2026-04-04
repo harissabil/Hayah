@@ -18,12 +18,10 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,17 +40,17 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import id.harissabil.hayah.R
 import id.harissabil.hayah.ui.screens.onboarding.components.AuraBlobs
 import id.harissabil.hayah.ui.screens.onboarding.components.OnboardingPageContent
 import id.harissabil.hayah.ui.screens.onboarding.components.PagerIndicator
 import id.harissabil.hayah.ui.theme.CairoFamily
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun OnboardingScreen(
-    onNavigateToHome: () -> Unit,
-    viewModel: OnboardingViewModel = viewModel(),
+    onLoginClick: () -> Unit,
+    viewModel: OnboardingViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { uiState.pages.size })
@@ -125,7 +123,7 @@ fun OnboardingScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // Primary CTA
+                // Primary CTA — launches Quran.com OAuth login
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -139,7 +137,7 @@ fun OnboardingScreen(
                                 )
                             )
                         )
-                        .clickable { },
+                        .clickable { onLoginClick() },
                     contentAlignment = Alignment.Center
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -159,31 +157,7 @@ fun OnboardingScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                // Secondary ghost button
-                TextButton(
-                    onClick = onNavigateToHome,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                ) {
-                    Text(
-                        text = "Explore as Guest",
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForwardIos,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 Text(
                     text = buildAnnotatedString {
                         withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {

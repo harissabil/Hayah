@@ -13,14 +13,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import id.harissabil.hayah.ui.screens.journal.components.JournalEntryCard
 import id.harissabil.hayah.ui.screens.journal.components.JournalSearchBar
 
 @Composable
 fun JournalScreen(
     onNavigateToQuranReader: () -> Unit,
-    viewModel: JournalViewModel = viewModel(),
+    viewModel: JournalViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
