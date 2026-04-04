@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import id.harissabil.hayah.ui.screens.journal.JournalEntry
@@ -82,8 +81,6 @@ fun JournalEntryCard(
             text = entry.reflection,
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis
         )
 
         Spacer(modifier = Modifier.height(20.dp))

@@ -13,9 +13,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.koin.androidx.compose.koinViewModel
 import id.harissabil.hayah.ui.screens.journal.components.JournalEntryCard
 import id.harissabil.hayah.ui.screens.journal.components.JournalSearchBar
+import org.koin.androidx.compose.koinViewModel
+import java.util.UUID
 
 @Composable
 fun JournalScreen(
@@ -42,7 +43,7 @@ fun JournalScreen(
                 item { Spacer(modifier = Modifier.height(8.dp)) }
                 items(
                     items = uiState.filteredEntries,
-                    key = { it.surahVerse }
+                    key = { UUID.randomUUID() }
                 ) { entry ->
                     JournalEntryCard(entry = entry, onClick = onNavigateToQuranReader)
                     Spacer(modifier = Modifier.height(16.dp))
