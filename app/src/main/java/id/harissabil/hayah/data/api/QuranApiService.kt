@@ -1,8 +1,14 @@
 package id.harissabil.hayah.data.api
 
+import id.harissabil.hayah.data.model.AudioRecitationResponse
+import id.harissabil.hayah.data.model.ChaptersResponse
+import id.harissabil.hayah.data.model.RecitationsResponse
 import id.harissabil.hayah.data.model.UserProfileResponse
+import id.harissabil.hayah.data.model.VerseByKeyResponse
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Retrofit interface for Quran Foundation content/user APIs.
@@ -14,4 +20,36 @@ interface QuranApiService {
         @Header("x-auth-token") accessToken: String,
         @Header("x-client-id") clientId: String,
     ): UserProfileResponse
+
+    @GET("content/api/v4/verses/by_key/{verse_key}")
+    suspend fun getVerseByKey(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Path("verse_key") verseKey: String,
+        @Query("translations") translations: String = "131", // Sahih International
+        @Query("fields") fields: String = "text_uthmani",
+        @Query("language") language: String = "en",
+    ): VerseByKeyResponse
+
+    @GET("content/api/v4/recitations/{recitation_id}/by_ayah/{verse_key}")
+    suspend fun getAudioForVerse(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Path("recitation_id") recitationId: Int,
+        @Path("verse_key") verseKey: String,
+    ): AudioRecitationResponse
+
+    @GET("content/api/v4/chapters")
+    suspend fun getChapters(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Query("language") language: String = "en",
+    ): ChaptersResponse
+
+    @GET("content/api/v4/resources/recitations")
+    suspend fun getRecitations(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Query("language") language: String = "en",
+    ): RecitationsResponse
 }
