@@ -142,7 +142,7 @@ fun HomeScreen(
 
             SpiritualRing(
                 versesRead = uiState.versesRead,
-                totalVerses = uiState.totalVerses
+//                totalVerses = uiState.totalVerses
             )
 
             Spacer(modifier = Modifier.height(24.dp))

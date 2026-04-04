@@ -1,5 +1,12 @@
 package id.harissabil.hayah.ui.screens.home.components
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,11 +15,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -21,43 +32,113 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun SpiritualRing(
     versesRead: Int,
-    totalVerses: Int,
     modifier: Modifier = Modifier,
     size: Dp = 280.dp,
 ) {
-    val progress = if (totalVerses > 0) versesRead.toFloat() / totalVerses else 0f
-    val sweepAngle = 300f * progress.coerceIn(0f, 1f)
+    // 1. Setup Transisi Tak Terbatas (Meditative Loop)
+    val infiniteTransition = rememberInfiniteTransition(label = "morphing_ring")
 
-    val trackColor = MaterialTheme.colorScheme.surfaceContainerHigh
-    val gradientStart = MaterialTheme.colorScheme.secondary
-    val gradientEnd = MaterialTheme.colorScheme.primaryContainer
+    // Rotasi lambat berlawanan arah untuk ilusi bentuk organik yang terus berubah (Morphing)
+    val rotation1 by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(14000, easing = LinearEasing)),
+        label = "rotation_clockwise"
+    )
+
+    val rotation2 by infiniteTransition.animateFloat(
+        initialValue = 360f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(tween(18000, easing = LinearEasing)),
+        label = "rotation_counter_clockwise"
+    )
+
+    // Efek bernapas yang sangat halus (Breathing Depth)
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0.96f,
+        targetValue = 1.02f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(4000, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "breathing_scale"
+    )
+
+    // 2. Tonal Architecture Colors
+    val baseGlowColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)
+    val gradientStart = MaterialTheme.colorScheme.secondary // Sand / Gold
+    val gradientEnd = MaterialTheme.colorScheme.primaryContainer // Emerald
+
+    val ringBrush = Brush.linearGradient(
+        colors = listOf(gradientStart, gradientEnd),
+        start = Offset(0f, 0f),
+        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+    )
 
     Box(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            drawCircle(color = trackColor, style = Stroke(width = 10.dp.toPx()))
-            drawArc(
-                brush = Brush.linearGradient(colors = listOf(gradientStart, gradientEnd)),
-                startAngle = -90f,
-                sweepAngle = sweepAngle,
-                useCenter = false,
-                style = Stroke(width = 14.dp.toPx(), cap = StrokeCap.Round)
-            )
+            val strokeWidth = 8.dp.toPx()
+            val canvasCenter = center
+
+            // Menggunakan efek scale untuk ilusi "napas"
+            scale(scale = pulse, pivot = canvasCenter) {
+
+                // Ring 1: Base Glow/Ambient Shadow (Aturan "Ghost Border" & Ambient Depth)
+                drawCircle(
+                    color = baseGlowColor,
+                    style = Stroke(width = strokeWidth * 2.5f), // Lebih tebal, lebih samar
+                    radius = (this.size.minDimension / 2) - strokeWidth
+                )
+
+                // Ring 2: Cincin gradien organik pertama (Sedikit oval, berputar lambat)
+                rotate(degrees = rotation1, pivot = canvasCenter) {
+                    drawOval(
+                        brush = ringBrush,
+                        topLeft = Offset(strokeWidth, strokeWidth * 1.5f),
+                        size = Size(
+                            width = this.size.width - (strokeWidth * 2),
+                            height = this.size.height - (strokeWidth * 4) // Dibuat sedikit oval/squashed
+                        ),
+                        style = Stroke(width = strokeWidth)
+                    )
+                }
+
+                // Ring 3: Cincin gradien organik kedua (Berputar berlawanan arah, offset berbeda)
+                rotate(degrees = rotation2, pivot = canvasCenter) {
+                    drawOval(
+                        brush = ringBrush,
+                        topLeft = Offset(strokeWidth * 1.5f, strokeWidth),
+                        size = Size(
+                            width = this.size.width - (strokeWidth * 4),
+                            height = this.size.height - (strokeWidth * 2)
+                        ),
+                        style = Stroke(width = strokeWidth * 1.2f),
+                        alpha = 0.8f // Sedikit transparan agar membaur indah saat tumpang tindih
+                    )
+                }
+            }
         }
+
+        // 3. Editorial Typography
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = versesRead.toString(),
-                style = MaterialTheme.typography.displayLarge.copy(fontSize = 72.sp),
-                fontWeight = FontWeight.ExtraBold,
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontSize = 72.sp,
+                    letterSpacing = (-1.5).sp // Tight tracking untuk "Hero Moment"
+                ),
+                fontWeight = FontWeight.Light, // Dibuat lebih tipis agar selaras dengan ring yang soft
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Verses Read",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = "VERSES READ",
+                style = MaterialTheme.typography.labelMedium.copy(
+                    letterSpacing = 2.sp // Uppercase dengan tracking lebar ala "Curator's Tag"
+                ),
+                color = MaterialTheme.colorScheme.secondary // Memberikan "Warmth"
             )
         }
     }
