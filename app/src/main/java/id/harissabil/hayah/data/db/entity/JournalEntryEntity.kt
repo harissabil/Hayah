@@ -30,6 +30,9 @@ data class JournalEntryEntity(
     @ColumnInfo(name = "audio_url")
     val audioUrl: String? = null,
 
+    @ColumnInfo(name = "page_number")
+    val pageNumber: Int,
+
     val timestamp: Long,             // epoch millis
 
     @ColumnInfo(name = "is_unread")

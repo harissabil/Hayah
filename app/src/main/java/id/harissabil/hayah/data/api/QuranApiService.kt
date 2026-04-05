@@ -26,7 +26,7 @@ interface QuranApiService {
         @Header("x-auth-token") accessToken: String,
         @Header("x-client-id") clientId: String,
         @Path("verse_key") verseKey: String,
-        @Query("translations") translations: String = "131", // Sahih International
+        @Query("translations") translations: String = "20", // Sahih International
         @Query("fields") fields: String = "text_uthmani",
         @Query("language") language: String = "en",
     ): VerseByKeyResponse
