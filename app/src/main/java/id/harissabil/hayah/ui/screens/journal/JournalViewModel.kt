@@ -45,6 +45,7 @@ class JournalViewModel(
                         reflection = entity.reflection,
                         date = formatTimestamp(entity.timestamp),
                         isUnread = entity.isUnread,
+                        pageNumber = entity.pageNumber
                     )
                 }
                 _uiState.update {

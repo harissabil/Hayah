@@ -12,4 +12,5 @@ data class JournalEntry(
     val reflection: String,
     val date: String,
     val isUnread: Boolean,
+    val pageNumber: Int,
 )
