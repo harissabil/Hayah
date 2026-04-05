@@ -14,8 +14,7 @@ enum class Period { THIS_WEEK, THIS_MONTH, ALL_TIME }
 
 data class HomeUiState(
     val userName: String = "",
-    val versesRead: Int = 7,
-    val totalVerses: Int = 10,
+    val pagesRead: Int = 7,
     val selectedPeriod: Period = Period.THIS_WEEK,
     val profilePhotoUrl: String? = null,
 )

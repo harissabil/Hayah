@@ -1,5 +1,6 @@
 package id.harissabil.hayah.ui.screens.home.components
 
+import android.content.res.Configuration
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,13 +27,15 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import id.harissabil.hayah.ui.theme.HayahTheme
 
 @Composable
 fun SpiritualRing(
-    versesRead: Int,
+    pagesRead: Int,
     modifier: Modifier = Modifier,
     size: Dp = 280.dp,
 ) {
@@ -125,7 +129,7 @@ fun SpiritualRing(
         // 3. Editorial Typography
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = versesRead.toString(),
+                text = pagesRead.toString(),
                 style = MaterialTheme.typography.displayLarge.copy(
                     fontSize = 72.sp,
                     letterSpacing = (-1.5).sp // Tight tracking untuk "Hero Moment"
@@ -134,12 +138,28 @@ fun SpiritualRing(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "VERSES READ",
+                text = "PAGES READ",
                 style = MaterialTheme.typography.labelMedium.copy(
                     letterSpacing = 2.sp // Uppercase dengan tracking lebar ala "Curator's Tag"
                 ),
                 color = MaterialTheme.colorScheme.secondary // Memberikan "Warmth"
             )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SpritualRingPreview() {
+    HayahTheme {
+        Surface {
+            Box(
+                modifier = Modifier.size(300.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                SpiritualRing(pagesRead = 42)
+            }
         }
     }
 }
