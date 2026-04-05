@@ -26,6 +26,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -49,10 +50,10 @@ import coil3.compose.AsyncImage
 import id.harissabil.hayah.R
 import id.harissabil.hayah.service.ActivityRecognitionManager
 import id.harissabil.hayah.ui.screens.home.components.InstantReflectionButton
+import id.harissabil.hayah.ui.screens.home.components.InstantReflectionDialog
 import id.harissabil.hayah.ui.screens.home.components.PeriodSelector
 import id.harissabil.hayah.ui.screens.home.components.SpiritualRing
 import id.harissabil.hayah.ui.theme.CairoFamily
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -106,6 +107,30 @@ fun HomeScreen(
             // All permissions already granted
             activityRecognitionManager.startTracking()
         }
+    }
+
+    LaunchedEffect(uiState.instantReflectionError) {
+        val error = uiState.instantReflectionError
+        if (error != null) {
+            val result = snackbarHostState.showSnackbar(
+                message = error,
+                actionLabel = "Retry"
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.generateInstantReflection()
+            } else {
+                viewModel.dismissInstantReflectionError()
+            }
+        }
+    }
+
+    if (uiState.newlyGeneratedEntry != null) {
+        InstantReflectionDialog(
+            entry = uiState.newlyGeneratedEntry!!,
+            onDismiss = {
+                viewModel.dismissNewlyGeneratedEntry()
+            }
+        )
     }
 
     Scaffold(
@@ -208,10 +233,9 @@ fun HomeScreen(
             Spacer(modifier = Modifier.weight(1f))
 
             InstantReflectionButton(
+                isLoading = uiState.isInstantReflectionLoading,
                 onClick = {
-                    coroutineScope.launch {
-                        snackbarHostState.showSnackbar("Instant reflection triggered")
-                    }
+                    viewModel.generateInstantReflection()
                 }
             )
 

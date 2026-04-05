@@ -252,6 +252,7 @@ class ReminderOrchestrator(
                 val textUthmani = detail.textUthmani ?: ""
                 val pageNumber = detail.pageNumber ?: 0
                 val translation = detail.translations?.firstOrNull()?.text
+                    ?.replace(Regex("<sup[^>]*>.*?</sup>"), "")
                     ?.replace(Regex("<[^>]*>"), "") // strip HTML tags
                     ?: ""
 

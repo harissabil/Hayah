@@ -63,7 +63,17 @@ val appModule = module {
 
     // ── ViewModels ───────────────────────────
     viewModel { AuthViewModel(get()) }
-    viewModel { HomeViewModel(get()) }
+    viewModel {
+        HomeViewModel(
+            authRepository = get(),
+            context = androidContext(),
+            authStateManager = get(),
+            journalEntryDao = get(),
+            quranApiService = get(),
+            verseRecommendationService = get(),
+            notificationHelper = get(),
+        )
+    }
     viewModel { OnboardingViewModel() }
     viewModel { JournalViewModel(get()) }
     viewModel { SettingsViewModel(androidContext(), get(), get()) }

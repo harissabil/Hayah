@@ -109,7 +109,7 @@ fun JournalEntryCard(
                 modifier = Modifier.clickable { onClick() }
             ) {
                 Text(
-                    text = "Read Verse",
+                    text = "Read Full Page",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary

@@ -31,6 +31,15 @@ interface QuranApiService {
         @Query("language") language: String = "en",
     ): VerseByKeyResponse
 
+    @GET("content/api/v4/verses/random")
+    suspend fun getRandomVerse(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Query("translations") translations: String = "20",
+        @Query("fields") fields: String = "text_uthmani",
+        @Query("language") language: String = "en",
+    ): VerseByKeyResponse
+
     @GET("content/api/v4/recitations/{recitation_id}/by_ayah/{verse_key}")
     suspend fun getAudioForVerse(
         @Header("x-auth-token") accessToken: String,

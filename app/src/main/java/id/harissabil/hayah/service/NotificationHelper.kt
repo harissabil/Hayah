@@ -104,7 +104,7 @@ class NotificationHelper(private val context: Context) {
         }
     }
 
-    private fun playVerseAudio(url: String) {
+    fun playVerseAudio(url: String) {
         try {
             mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
@@ -118,6 +118,16 @@ class NotificationHelper(private val context: Context) {
             }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to play audio: $url", e)
+        }
+    }
+
+    fun stopVerseAudio() {
+        try {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to stop audio", e)
         }
     }
 }
