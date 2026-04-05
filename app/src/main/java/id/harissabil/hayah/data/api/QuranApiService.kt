@@ -1,12 +1,15 @@
 package id.harissabil.hayah.data.api
 
+import id.harissabil.hayah.data.model.ActivityDayRequest
 import id.harissabil.hayah.data.model.AudioRecitationResponse
 import id.harissabil.hayah.data.model.ChaptersResponse
 import id.harissabil.hayah.data.model.RecitationsResponse
 import id.harissabil.hayah.data.model.UserProfileResponse
 import id.harissabil.hayah.data.model.VerseByKeyResponse
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -61,4 +64,22 @@ interface QuranApiService {
         @Header("x-client-id") clientId: String,
         @Query("language") language: String = "en",
     ): RecitationsResponse
+
+    @GET("content/api/v4/verses/by_page/{page_number}")
+    suspend fun getVersesByPage(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Path("page_number") pageNumber: Int,
+        @Query("translations") translations: String = "20",
+        @Query("fields") fields: String = "text_uthmani",
+        @Query("language") language: String = "en",
+    ): id.harissabil.hayah.data.model.VersesByPageResponse
+
+    @POST("auth/v1/activity-days")
+    suspend fun postActivityDays(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Header("x-timezone") timezone: String,
+        @Body request: ActivityDayRequest,
+    )
 }

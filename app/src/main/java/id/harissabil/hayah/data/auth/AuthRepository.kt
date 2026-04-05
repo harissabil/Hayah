@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
@@ -17,7 +18,6 @@ import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ResponseTypeValues
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Coordinates the full OAuth 2.0 lifecycle:
@@ -134,7 +134,7 @@ class AuthRepository(
         val authService = AuthorizationService(context)
 
         return try {
-            val (tokenResponse, tokenException) = suspendCoroutine { continuation ->
+            val (tokenResponse, tokenException) = suspendCancellableCoroutine { continuation ->
                 authService.performTokenRequest(tokenRequest) { resp, ex ->
                     continuation.resume(resp to ex)
                 }
@@ -170,7 +170,7 @@ class AuthRepository(
         try {
             val tokenRequest = authState.createTokenRefreshRequest()
 
-            val (tokenResponse, tokenException) = suspendCoroutine { continuation ->
+            val (tokenResponse, tokenException) = suspendCancellableCoroutine { continuation ->
                 authService.performTokenRequest(tokenRequest) { resp, ex ->
                     continuation.resume(resp to ex)
                 }

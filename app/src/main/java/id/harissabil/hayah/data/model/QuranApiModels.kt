@@ -63,3 +63,19 @@ data class TranslatedReciterName(
     val name: String? = null,
     @SerializedName("language_name") val languageName: String? = null,
 )
+
+// ── Verses by page response ───────────────────────
+
+data class VersesByPageResponse(
+    val verses: List<VerseDetail>? = null,
+)
+
+// ── Activity day request ──────────────────────────
+
+data class ActivityDayRequest(
+    val date: String,
+    val type: String = "QURAN",
+    val seconds: Int,
+    val ranges: List<String>,
+    val mushafId: Int = 4,
+)
