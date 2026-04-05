@@ -13,7 +13,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import id.harissabil.hayah.data.api.QuranApiService
-import id.harissabil.hayah.data.auth.AuthStateManager
+import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.model.RecitationItem
 import id.harissabil.hayah.data.settings.hayahSettingsDataStore
@@ -49,7 +49,7 @@ data class SettingsUiState(
 
 class SettingsViewModel(
     private val context: Context,
-    private val authStateManager: AuthStateManager,
+    private val authRepository: AuthRepository,
     private val quranApiService: QuranApiService,
 ) : ViewModel() {
 
@@ -185,7 +185,7 @@ class SettingsViewModel(
                 }
             }
 
-            val accessToken = authStateManager.getAuthState().accessToken
+            val accessToken = authRepository.getValidAccessToken()
             if (accessToken.isNullOrBlank()) {
                 _uiState.update {
                     it.copy(

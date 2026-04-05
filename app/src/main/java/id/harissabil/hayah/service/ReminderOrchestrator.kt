@@ -9,7 +9,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import id.harissabil.hayah.data.ai.VerseRecommendationService
 import id.harissabil.hayah.data.api.QuranApiService
-import id.harissabil.hayah.data.auth.AuthStateManager
+import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.db.dao.JournalEntryDao
 import id.harissabil.hayah.data.db.dao.KeywordCacheDao
@@ -40,7 +40,7 @@ import java.util.Calendar
  */
 class ReminderOrchestrator(
     private val context: Context,
-    private val authStateManager: AuthStateManager,
+    private val authRepository: AuthRepository,
     private val keywordCacheDao: KeywordCacheDao,
     private val journalEntryDao: JournalEntryDao,
     private val quranApiService: QuranApiService,
@@ -215,8 +215,7 @@ class ReminderOrchestrator(
      * Full pipeline: AI → API → cache.
      */
     private suspend fun generateAndCacheVerses(keyword: String): List<CachedVerse>? {
-        val authState = authStateManager.getAuthState()
-        val accessToken = authState.accessToken ?: return null
+        val accessToken = authRepository.getValidAccessToken() ?: return null
 
         // Step 1: Ask Gemini for 5 verse keys
         val verseKeys = verseRecommendationService.recommendVerses(keyword)
@@ -330,8 +329,7 @@ class ReminderOrchestrator(
     }
 
     private suspend fun loadSurahNames() {
-        val authState = authStateManager.getAuthState()
-        val accessToken = authState.accessToken ?: return
+        val accessToken = authRepository.getValidAccessToken() ?: return
 
         try {
             val response = quranApiService.getChapters(

@@ -56,7 +56,7 @@ val appModule = module {
     single {
         ReminderOrchestrator(
             context = androidContext(),
-            authStateManager = get(),
+            authRepository = get(),
             keywordCacheDao = get(),
             journalEntryDao = get(),
             quranApiService = get(),
@@ -71,7 +71,6 @@ val appModule = module {
         HomeViewModel(
             authRepository = get(),
             context = androidContext(),
-            authStateManager = get(),
             journalEntryDao = get(),
             quranApiService = get(),
             verseRecommendationService = get(),
@@ -86,7 +85,7 @@ val appModule = module {
         QuranReadingViewModel(
             savedStateHandle = get(),
             quranApiService = get(),
-            authStateManager = get(),
+            authRepository = get(),
             readHistoryDao = get(),
             journalEntryDao = get(),
         ) 

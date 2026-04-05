@@ -5,7 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import id.harissabil.hayah.data.api.QuranApiService
-import id.harissabil.hayah.data.auth.AuthStateManager
+import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.db.dao.JournalEntryDao
 import id.harissabil.hayah.data.db.dao.ReadHistoryDao
@@ -13,12 +13,17 @@ import id.harissabil.hayah.data.db.entity.ReadHistoryEntity
 import id.harissabil.hayah.data.model.ActivityDayRequest
 import id.harissabil.hayah.data.model.VerseDetail
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
+import retrofit2.HttpException
+import java.io.IOException
+import java.net.SocketTimeoutException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -40,10 +45,16 @@ data class QuranReadingUiState(
 class QuranReadingViewModel(
     savedStateHandle: SavedStateHandle,
     private val quranApiService: QuranApiService,
-    private val authStateManager: AuthStateManager,
+    private val authRepository: AuthRepository,
     private val readHistoryDao: ReadHistoryDao,
     private val journalEntryDao: JournalEntryDao,
 ) : ViewModel() {
+
+    companion object {
+        private const val TAG = "QuranReadingVM"
+        private const val POST_ACTIVITY_TIMEOUT_MS = 8_000L
+        private const val POST_ACTIVITY_MAX_ATTEMPTS = 3
+    }
 
     private val entryId: Long = checkNotNull(savedStateHandle["entryId"])
     private val pageNumber: Int = checkNotNull(savedStateHandle["pageNumber"])
@@ -67,8 +78,8 @@ class QuranReadingViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             try {
-                val authState = authStateManager.getAuthState()
-                val token = authState.accessToken ?: throw Exception("Not authenticated")
+                val token =
+                    authRepository.getValidAccessToken() ?: throw Exception("Not authenticated")
 
                 val response = quranApiService.getVersesByPage(
                     accessToken = token,
@@ -114,7 +125,7 @@ class QuranReadingViewModel(
                                 firstChapterName
                             }
                     } catch (e: Exception) {
-                        Log.e("QuranReadingVM", "Failed to fetch chapters", e)
+                        Log.e(TAG, "Failed to fetch chapters", e)
                     }
                 }
 
@@ -127,10 +138,75 @@ class QuranReadingViewModel(
                 }
                 startTimer()
             } catch (e: Exception) {
-                Log.e("QuranReadingVM", "Load failed", e)
+                Log.e(TAG, "Load failed", e)
                 _uiState.update { it.copy(isLoading = false, error = e.localizedMessage) }
             }
         }
+    }
+
+    private fun isRetriablePostError(error: Throwable): Boolean {
+        return when (error) {
+            is SocketTimeoutException,
+            is TimeoutCancellationException,
+            is IOException,
+                -> true
+
+            is HttpException -> error.code() in 500..599
+            else -> false
+        }
+    }
+
+    private suspend fun postActivityWithRetry(
+        timezone: String,
+        request: ActivityDayRequest,
+    ) {
+        var lastError: Throwable? = null
+
+        for (attempt in 1..POST_ACTIVITY_MAX_ATTEMPTS) {
+            try {
+                val token =
+                    authRepository.getValidAccessToken() ?: throw Exception("Not authenticated")
+
+                withTimeout(POST_ACTIVITY_TIMEOUT_MS) {
+                    quranApiService.postActivityDays(
+                        accessToken = token,
+                        clientId = QuranOAuthConfig.clientId,
+                        timezone = timezone,
+                        request = request,
+                    )
+                }
+
+                if (attempt > 1) {
+                    Log.w(TAG, "postActivityDays succeeded on retry attempt=$attempt")
+                }
+                return
+            } catch (e: Throwable) {
+                lastError = e
+
+                if (e is HttpException && e.code() == 401) {
+                    val refreshed = authRepository.refreshTokens()
+                    if (!refreshed) throw e
+                } else if (!isRetriablePostError(e)) {
+                    throw e
+                }
+
+                if (attempt < POST_ACTIVITY_MAX_ATTEMPTS) {
+                    val backoffMs = when (attempt) {
+                        1 -> 400L
+                        2 -> 900L
+                        else -> 1_500L
+                    }
+                    Log.w(
+                        TAG,
+                        "postActivityDays failed attempt=$attempt, retrying in ${backoffMs}ms",
+                        e
+                    )
+                    delay(backoffMs)
+                }
+            }
+        }
+
+        throw lastError ?: Exception("Failed to post activity")
     }
 
     private fun startTimer() {
@@ -156,9 +232,6 @@ class QuranReadingViewModel(
                 val firstVerse = state.verses.first().verseKey ?: ""
                 val lastVerse = state.verses.last().verseKey ?: ""
 
-                val authState = authStateManager.getAuthState()
-                val token = authState.accessToken ?: throw Exception("Not authenticated")
-
                 // Insert into local DB
                 readHistoryDao.insert(
                     ReadHistoryEntity(
@@ -177,22 +250,22 @@ class QuranReadingViewModel(
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 val dateStr = dateFormat.format(Date())
 
-                quranApiService.postActivityDays(
-                    accessToken = token,
-                    clientId = QuranOAuthConfig.clientId,
+                val request = ActivityDayRequest(
+                    date = dateStr,
+                    type = "QURAN",
+                    seconds = state.readingSeconds,
+                    ranges = listOf("$firstVerse-$lastVerse")
+                )
+
+                postActivityWithRetry(
                     timezone = currentTimeZone,
-                    request = ActivityDayRequest(
-                        date = dateStr,
-                        type = "QURAN",
-                        seconds = state.readingSeconds,
-                        ranges = listOf("$firstVerse-$lastVerse")
-                    )
+                    request = request,
                 )
 
                 _uiState.update { it.copy(isPosting = false, postSuccess = true) }
 
             } catch (e: Exception) {
-                Log.e("QuranReadingVM", "Failed to post activity", e)
+                Log.e(TAG, "Failed to post activity after retries", e)
                 // Even if API fails, we already inserted locally. We show an error slightly but don't unset hasReachedBottom.
                 _uiState.update {
                     it.copy(

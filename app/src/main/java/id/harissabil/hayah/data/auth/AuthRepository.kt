@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import net.openid.appauth.AuthorizationException
 import net.openid.appauth.AuthorizationRequest
@@ -34,6 +36,7 @@ class AuthRepository(
 ) {
     companion object {
         private const val TAG = "AuthRepository"
+        private const val TOKEN_REFRESH_BUFFER_MS = 30_000L
     }
 
     private val serviceConfig = AuthorizationServiceConfiguration(
@@ -49,6 +52,7 @@ class AuthRepository(
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+    private val refreshMutex = Mutex()
 
     /**
      * Call once at app startup to restore auth state from DataStore.
@@ -63,9 +67,9 @@ class AuthRepository(
                 // Try to load cached profile
                 _userProfile.value = authStateManager.getUserProfile()
 
-                // If the access token is expired but we have a refresh token, try to refresh
-                if (authState.needsTokenRefresh && authState.refreshToken != null) {
-                    refreshTokens()
+                // Proactively refresh when token is close to expiry.
+                if (shouldRefreshTokenSoon(authState)) {
+                    getValidAccessToken()
                 }
             }
         } catch (e: Exception) {
@@ -74,6 +78,41 @@ class AuthRepository(
         } finally {
             _isLoading.value = false
         }
+    }
+
+    /**
+     * Returns a token that is safe to use for Quran.com API calls.
+     * Refreshes proactively when expiry is within 30 seconds.
+     */
+    suspend fun getValidAccessToken(): String? = withContext(Dispatchers.IO) {
+        val authState = authStateManager.getAuthState()
+        val currentToken = authState.accessToken ?: return@withContext null
+
+        if (!shouldRefreshTokenSoon(authState)) {
+            return@withContext currentToken
+        }
+
+        val refreshed = refreshTokens()
+        if (refreshed) {
+            return@withContext authStateManager.getAuthState().accessToken
+        }
+
+        // If refresh failed but token is still technically valid, use it as a fallback.
+        return@withContext if (isTokenStillUsable(authState)) currentToken else null
+    }
+
+    private fun shouldRefreshTokenSoon(state: net.openid.appauth.AuthState): Boolean {
+        val expiresAt = state.accessTokenExpirationTime
+        return if (expiresAt != null) {
+            System.currentTimeMillis() >= (expiresAt - TOKEN_REFRESH_BUFFER_MS)
+        } else {
+            state.needsTokenRefresh
+        }
+    }
+
+    private fun isTokenStillUsable(state: net.openid.appauth.AuthState): Boolean {
+        val expiresAt = state.accessTokenExpirationTime ?: return state.accessToken != null
+        return System.currentTimeMillis() < expiresAt
     }
 
     // ── Authorization Intent ───────────────────────
@@ -164,35 +203,43 @@ class AuthRepository(
      * Refreshes the access token using the stored refresh token.
      */
     suspend fun refreshTokens(): Boolean = withContext(Dispatchers.IO) {
-        val authState = authStateManager.getAuthState()
-        val authService = AuthorizationService(context)
+        refreshMutex.withLock {
+            val authState = authStateManager.getAuthState()
 
-        try {
-            val tokenRequest = authState.createTokenRefreshRequest()
-
-            val (tokenResponse, tokenException) = suspendCancellableCoroutine { continuation ->
-                authService.performTokenRequest(tokenRequest) { resp, ex ->
-                    continuation.resume(resp to ex)
-                }
+            if (authState.refreshToken == null) {
+                Log.w(TAG, "Cannot refresh token: refresh_token is missing")
+                _isAuthenticated.value = authState.accessToken != null
+                return@withLock false
             }
 
-            authState.update(tokenResponse, tokenException)
-            authStateManager.saveAuthState(authState)
+            val authService = AuthorizationService(context)
+            try {
+                val tokenRequest = authState.createTokenRefreshRequest()
 
-            if (tokenException != null) {
-                Log.e(TAG, "Token refresh failed: ${tokenException.errorDescription}")
+                val (tokenResponse, tokenException) = suspendCancellableCoroutine { continuation ->
+                    authService.performTokenRequest(tokenRequest) { resp, ex ->
+                        continuation.resume(resp to ex)
+                    }
+                }
+
+                authState.update(tokenResponse, tokenException)
+                authStateManager.saveAuthState(authState)
+
+                if (tokenException != null) {
+                    Log.e(TAG, "Token refresh failed: ${tokenException.errorDescription}")
+                    _isAuthenticated.value = false
+                    false
+                } else {
+                    _isAuthenticated.value = true
+                    true
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Token refresh error", e)
                 _isAuthenticated.value = false
                 false
-            } else {
-                _isAuthenticated.value = true
-                true
+            } finally {
+                authService.dispose()
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Token refresh error", e)
-            _isAuthenticated.value = false
-            false
-        } finally {
-            authService.dispose()
         }
     }
 
@@ -202,8 +249,7 @@ class AuthRepository(
      * Fetches the user profile from the Quran Foundation API and caches it.
      */
     suspend fun fetchAndCacheProfile() = withContext(Dispatchers.IO) {
-        val authState = authStateManager.getAuthState()
-        val accessToken = authState.accessToken ?: return@withContext
+        val accessToken = getValidAccessToken() ?: return@withContext
 
         try {
             val profile = apiService.getUserProfile(
@@ -225,8 +271,7 @@ class AuthRepository(
     }
 
     private suspend fun retryProfileFetch() {
-        val authState = authStateManager.getAuthState()
-        val accessToken = authState.accessToken ?: return
+        val accessToken = getValidAccessToken() ?: return
         try {
             val profile = apiService.getUserProfile(
                 accessToken = accessToken,

@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import id.harissabil.hayah.data.ai.VerseRecommendationService
 import id.harissabil.hayah.data.api.QuranApiService
 import id.harissabil.hayah.data.auth.AuthRepository
-import id.harissabil.hayah.data.auth.AuthStateManager
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.db.dao.JournalEntryDao
 import id.harissabil.hayah.data.db.dao.ReadHistoryDao
@@ -39,7 +38,6 @@ data class HomeUiState(
 class HomeViewModel(
     private val authRepository: AuthRepository,
     private val context: Context,
-    private val authStateManager: AuthStateManager,
     private val journalEntryDao: JournalEntryDao,
     private val quranApiService: QuranApiService,
     private val verseRecommendationService: VerseRecommendationService,
@@ -122,8 +120,7 @@ class HomeViewModel(
 
         viewModelScope.launch {
             try {
-                val authState = authStateManager.getAuthState()
-                val accessToken = authState.accessToken
+                val accessToken = authRepository.getValidAccessToken()
                 if (accessToken == null) {
                     _uiState.update { it.copy(isInstantReflectionLoading = false, instantReflectionError = "Authentication required.") }
                     return@launch
