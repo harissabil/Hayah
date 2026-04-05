@@ -529,7 +529,7 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    "Hayah v1.0.0", style = MaterialTheme.typography.bodySmall,
+                    "Hayah v0.0.1", style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
                 )
                 Text(
