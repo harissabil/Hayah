@@ -23,6 +23,7 @@ class HayahAccessibilityService : AccessibilityService(), KoinComponent {
     companion object {
         private const val TAG = "HayahAccessibility"
         private const val SCAN_COOLDOWN_MS = 1000L // avoid processing too frequently
+        private const val KEYWORD_RETRIGGER_COOLDOWN_MS = 3000L
 
         private val EXCLUDED_PACKAGES = setOf(
             "id.harissabil.hayah",
@@ -33,7 +34,7 @@ class HayahAccessibilityService : AccessibilityService(), KoinComponent {
 
     private val orchestrator: ReminderOrchestrator by inject()
     private var lastScanTime = 0L
-    private val recentKeywords = mutableSetOf<String>() // prevent rapid-fire for same keyword
+    private val recentKeywordTimes = mutableMapOf<String, Long>()
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event ?: return
@@ -65,18 +66,22 @@ class HayahAccessibilityService : AccessibilityService(), KoinComponent {
         // Scan for trigger keywords
         val lowerText = combinedText.lowercase()
         for (keyword in TriggerKeywords.ISLAMIC_KEYWORDS) {
-            if (lowerText.contains(keyword) && keyword !in recentKeywords) {
-                Log.d(TAG, "Keyword '$keyword' detected in ${eventTypeName(event.eventType)}")
-                recentKeywords.add(keyword)
-                orchestrator.onKeywordDetected(keyword)
-                // Only trigger one keyword per scan to avoid spam
-                break
-            }
+            if (!lowerText.contains(keyword)) continue
+
+            val lastSeen = recentKeywordTimes[keyword] ?: 0L
+            if (now - lastSeen < KEYWORD_RETRIGGER_COOLDOWN_MS) continue
+
+            Log.d(TAG, "Keyword '$keyword' detected in ${eventTypeName(event.eventType)}")
+            recentKeywordTimes[keyword] = now
+            orchestrator.onKeywordDetected(keyword)
+            // Only trigger one keyword per scan to avoid spam
+            break
         }
 
-        // Clear recent keywords periodically
-        if (recentKeywords.size > 20) {
-            recentKeywords.clear()
+        // Periodic cleanup for stale entries
+        if (recentKeywordTimes.size > 100) {
+            val cutoff = now - (KEYWORD_RETRIGGER_COOLDOWN_MS * 4)
+            recentKeywordTimes.entries.removeAll { it.value < cutoff }
         }
     }
 

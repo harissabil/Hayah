@@ -45,8 +45,8 @@ object TriggerKeywords {
     /** Activity-to-keyword mapping for Activity Recognition transitions. */
     val ACTIVITY_KEYWORDS: Map<String, String> = mapOf(
         "IN_VEHICLE" to "travel",
-        "ON_BICYCLE" to "effort",
-        "RUNNING" to "perseverance",
-        "WALKING" to "reflection",
+        "ON_BICYCLE" to "exercise",
+        "RUNNING" to "running",
+        "WALKING" to "walking",
     )
 }

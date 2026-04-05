@@ -22,6 +22,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.util.Calendar
 
 /**
@@ -50,15 +52,19 @@ class ReminderOrchestrator(
         val KEY_PLAY_AUDIO = booleanPreferencesKey("play_audio_instantly")
         val KEY_RECITER_ID = intPreferencesKey("reciter_id")
         private val KEY_MAX_REMINDERS = floatPreferencesKey("max_reminders")
+        private val KEY_QUIET_DURATION = floatPreferencesKey("quiet_duration_minutes")
+        private val KEY_DETECTION_THRESHOLD = floatPreferencesKey("detection_threshold")
         private const val DEFAULT_RECITER_ID = 7 // Mishary Rashid Alafasy
         private const val DEFAULT_MAX_REMINDERS = 5
-
-        private const val REMINDER_COOLDOWN_MS = 10 * 60 * 1000L
+        private const val DEFAULT_QUIET_DURATION_MINUTES = 10f
+        private const val DEFAULT_DETECTION_THRESHOLD = 3f
         private const val AUDIO_CDN_BASE = "https://verses.quran.com/"
     }
 
     private val gson = Gson()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val processMutex = Mutex()
+    private val detectionCounters = mutableMapOf<String, Int>()
 
     // Surah name cache (loaded once)
     private var surahNames: Map<Int, String>? = null
@@ -67,11 +73,17 @@ class ReminderOrchestrator(
      * Called by detection sources. Runs the full pipeline on IO dispatcher.
      */
     fun onKeywordDetected(keyword: String) {
+        val normalized = keyword.lowercase().trim()
+        if (normalized.isBlank()) return
+
         scope.launch {
             try {
-                processKeyword(keyword.lowercase().trim())
+                // Serialize processing so two concurrent keywords cannot bypass cooldown checks.
+                processMutex.withLock {
+                    processKeyword(normalized)
+                }
             } catch (e: Exception) {
-                Log.e(TAG, "Error processing keyword '$keyword'", e)
+                Log.e(TAG, "Error processing keyword '$normalized'", e)
             }
         }
     }
@@ -81,6 +93,14 @@ class ReminderOrchestrator(
         val todayStart = todayStartMillis()
         val prefs = context.hayahSettingsDataStore.data.first()
 
+        val detectionThreshold = (prefs[KEY_DETECTION_THRESHOLD] ?: DEFAULT_DETECTION_THRESHOLD)
+            .toInt()
+            .coerceAtLeast(1)
+        if (!passesDetectionThreshold(keyword, detectionThreshold)) {
+            Log.d(TAG, "Detection threshold not reached for '$keyword' ($detectionThreshold)")
+            return
+        }
+
         val maxDailyReminders = (prefs[KEY_MAX_REMINDERS] ?: DEFAULT_MAX_REMINDERS.toFloat())
             .toInt()
             .coerceAtLeast(1)
@@ -88,12 +108,18 @@ class ReminderOrchestrator(
         val shownTodayTotal = journalEntryDao.countEntriesSince(todayStart)
         if (shownTodayTotal >= maxDailyReminders) {
             Log.d(TAG, "Daily max reached ($shownTodayTotal/$maxDailyReminders), skipping '$keyword'")
+            resetDetectionCounter(keyword)
             return
         }
 
+        val quietDurationMinutes = (prefs[KEY_QUIET_DURATION] ?: DEFAULT_QUIET_DURATION_MINUTES)
+            .coerceAtLeast(1f)
+        val cooldownMs = (quietDurationMinutes * 60_000f).toLong()
+
         val lastReminderAt = journalEntryDao.getLatestEntryTimestamp() ?: 0L
-        if (lastReminderAt > 0L && (now - lastReminderAt) < REMINDER_COOLDOWN_MS) {
-            Log.d(TAG, "Global cooldown active, skipping '$keyword'")
+        if (lastReminderAt > 0L && (now - lastReminderAt) < cooldownMs) {
+            Log.d(TAG, "Global quiet duration active (${quietDurationMinutes.toInt()}m), skipping '$keyword'")
+            resetDetectionCounter(keyword)
             return
         }
 
@@ -101,6 +127,7 @@ class ReminderOrchestrator(
         val shownToday = journalEntryDao.countEntriesForKeywordSince(keyword, todayStart)
         if (shownToday > 0) {
             Log.d(TAG, "Keyword '$keyword' already shown today, skipping")
+            resetDetectionCounter(keyword)
             return
         }
 
@@ -158,7 +185,30 @@ class ReminderOrchestrator(
             )
         )
 
+        resetDetectionCounter(keyword)
+
         Log.d(TAG, "Reminder delivered: '$keyword' → ${verse.verseKey}")
+    }
+
+    private fun passesDetectionThreshold(keyword: String, threshold: Int): Boolean {
+        if (threshold <= 1) return true
+
+        val nextCount = (detectionCounters[keyword] ?: 0) + 1
+        detectionCounters[keyword] = nextCount
+
+        if (detectionCounters.size > 128) {
+            detectionCounters.clear()
+        }
+
+        if (nextCount >= threshold) {
+            detectionCounters.remove(keyword)
+            return true
+        }
+        return false
+    }
+
+    private fun resetDetectionCounter(keyword: String) {
+        detectionCounters.remove(keyword)
     }
 
     /**
