@@ -13,6 +13,7 @@ import id.harissabil.hayah.ui.screens.auth.AuthViewModel
 import id.harissabil.hayah.ui.screens.home.HomeViewModel
 import id.harissabil.hayah.ui.screens.journal.JournalViewModel
 import id.harissabil.hayah.ui.screens.onboarding.OnboardingViewModel
+import id.harissabil.hayah.ui.screens.reading.QuranReadingViewModel
 import id.harissabil.hayah.ui.screens.settings.SettingsViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
@@ -26,11 +27,14 @@ val appModule = module {
             androidContext(),
             HayahDatabase::class.java,
             "hayah_database"
-        ).build()
+        )
+            .fallbackToDestructiveMigration(true)
+        .build()
     }
 
     single { get<HayahDatabase>().keywordCacheDao() }
     single { get<HayahDatabase>().journalEntryDao() }
+    single { get<HayahDatabase>().readHistoryDao() }
 
     // ── Auth data layer ──────────────────────
     single { AuthStateManager(androidContext()) }
@@ -72,9 +76,19 @@ val appModule = module {
             quranApiService = get(),
             verseRecommendationService = get(),
             notificationHelper = get(),
+            readHistoryDao = get(),
         )
     }
     viewModel { OnboardingViewModel() }
     viewModel { JournalViewModel(get()) }
     viewModel { SettingsViewModel(androidContext(), get(), get()) }
+    viewModel {
+        QuranReadingViewModel(
+            savedStateHandle = get(),
+            quranApiService = get(),
+            authStateManager = get(),
+            readHistoryDao = get(),
+            journalEntryDao = get(),
+        ) 
+    }
 }
