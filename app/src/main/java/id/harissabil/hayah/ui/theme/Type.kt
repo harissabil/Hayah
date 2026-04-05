@@ -34,6 +34,10 @@ val CairoFamily = FontFamily(
     Font(googleFont = CairoFont, fontProvider = provider, weight = FontWeight.Bold),
 )
 
+val UthmaniFamily = FontFamily(
+    androidx.compose.ui.text.font.Font(resId = R.font.uthmanic_regular, weight = FontWeight.Normal),
+)
+
 // Set of Material typography styles to start with
 val Typography = Typography(
     displayLarge = TextStyle(
