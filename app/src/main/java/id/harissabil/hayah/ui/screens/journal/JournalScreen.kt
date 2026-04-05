@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.harissabil.hayah.ui.screens.journal.components.EmptyJournalState
 import id.harissabil.hayah.ui.screens.journal.components.JournalEntryCard
 import id.harissabil.hayah.ui.screens.journal.components.JournalSearchBar
 import org.koin.androidx.compose.koinViewModel
@@ -35,20 +36,31 @@ fun JournalScreen(
                 query = uiState.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChanged
             )
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp),
-            ) {
-                item { Spacer(modifier = Modifier.height(8.dp)) }
-                items(
-                    items = uiState.filteredEntries,
-                    key = { UUID.randomUUID() }
-                ) { entry ->
-                    JournalEntryCard(entry = entry, onClick = onNavigateToQuranReader)
-                    Spacer(modifier = Modifier.height(16.dp))
+
+            if (uiState.filteredEntries.isEmpty()) {
+                EmptyJournalState(
+                    isSearching = uiState.searchQuery.isNotEmpty(),
+                    modifier = Modifier.weight(1f)
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    item { Spacer(modifier = Modifier.height(8.dp)) }
+                    items(
+                        items = uiState.filteredEntries,
+                        key = { UUID.randomUUID() }
+                    ) { entry ->
+                        JournalEntryCard(
+                            entry = entry,
+                            onClick = onNavigateToQuranReader
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                    item { Spacer(modifier = Modifier.height(80.dp)) }
                 }
-                item { Spacer(modifier = Modifier.height(80.dp)) }
             }
         }
     }

@@ -79,17 +79,17 @@ fun HayahNavGraph(
                     onLoginClick = onLoginClick,
                 )
             }
-            composable(Screen.Home.route) {
+            slideContainerAnimationComposable(Screen.Home.route) {
                 HomeScreen()
             }
-            composable(Screen.Journal.route) {
+            slideContainerAnimationComposable(Screen.Journal.route) {
                 JournalScreen(
                     onNavigateToQuranReader = {
                         navController.navigate(Screen.QuranReading.route)
                     }
                 )
             }
-            composable(Screen.Settings.route) {
+            slideContainerAnimationComposable(Screen.Settings.route) {
                 SettingsScreen(onLogout = onLogout)
             }
             composable(Screen.QuranReading.route) {

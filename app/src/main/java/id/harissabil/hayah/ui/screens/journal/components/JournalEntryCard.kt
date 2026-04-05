@@ -54,7 +54,7 @@ fun JournalEntryCard(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                if (entry.isUnread) {
+                if (!entry.isUnread) {
                     Box(
                         modifier = Modifier
                             .size(10.dp)
