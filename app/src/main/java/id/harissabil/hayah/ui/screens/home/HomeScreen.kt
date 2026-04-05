@@ -3,6 +3,7 @@ package id.harissabil.hayah.ui.screens.home
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -33,6 +34,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -45,15 +47,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import id.harissabil.hayah.R
+import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.ActivityRecognitionManager
+import id.harissabil.hayah.service.HayahAccessibilityService
+import id.harissabil.hayah.ui.screens.home.components.AccessibilityTutorialDialog
 import id.harissabil.hayah.ui.screens.home.components.InstantReflectionButton
 import id.harissabil.hayah.ui.screens.home.components.InstantReflectionDialog
 import id.harissabil.hayah.ui.screens.home.components.PeriodSelector
 import id.harissabil.hayah.ui.screens.home.components.SpiritualRing
 import id.harissabil.hayah.ui.theme.CairoFamily
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -66,8 +75,40 @@ fun HomeScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+    val showAccessibilityTutorialDialog = remember { mutableStateOf(false) }
+    val hasEvaluatedAccessibilityTutorial = remember { mutableStateOf(false) }
+    val keyAccessibilityTutorialShown = remember {
+        booleanPreferencesKey("accessibility_tutorial_shown_once")
+    }
 
     val activityRecognitionManager: ActivityRecognitionManager = koinInject()
+
+    fun isAccessibilityServiceEnabled(): Boolean {
+        val serviceName =
+            "${context.packageName}/${HayahAccessibilityService::class.java.canonicalName}"
+        val enabledServices = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        )
+        return enabledServices?.contains(serviceName) == true
+    }
+
+    suspend fun maybeShowAccessibilityTutorialOnce() {
+        if (hasEvaluatedAccessibilityTutorial.value) return
+        hasEvaluatedAccessibilityTutorial.value = true
+
+        val prefs = context.hayahSettingsDataStore.data.first()
+        val alreadyShown = prefs[keyAccessibilityTutorialShown] ?: false
+        if (alreadyShown) return
+
+        if (!isAccessibilityServiceEnabled()) {
+            showAccessibilityTutorialDialog.value = true
+            // Persist immediately so it won't reappear even if user closes without enabling.
+            context.hayahSettingsDataStore.edit {
+                it[keyAccessibilityTutorialShown] = true
+            }
+        }
+    }
 
     // 1. Set up the Compose Permission Launcher
     val permissionLauncher = rememberLauncherForActivityResult(
@@ -76,6 +117,9 @@ fun HomeScreen(
         val activityGranted = results[Manifest.permission.ACTIVITY_RECOGNITION] ?: false
         if (activityGranted || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             activityRecognitionManager.startTracking()
+        }
+        coroutineScope.launch {
+            maybeShowAccessibilityTutorialOnce()
         }
     }
 
@@ -106,6 +150,7 @@ fun HomeScreen(
         } else {
             // All permissions already granted
             activityRecognitionManager.startTracking()
+            maybeShowAccessibilityTutorialOnce()
         }
     }
 
@@ -130,6 +175,12 @@ fun HomeScreen(
             onDismiss = {
                 viewModel.dismissNewlyGeneratedEntry()
             }
+        )
+    }
+
+    if (showAccessibilityTutorialDialog.value) {
+        AccessibilityTutorialDialog(
+            onClose = { showAccessibilityTutorialDialog.value = false }
         )
     }
 
