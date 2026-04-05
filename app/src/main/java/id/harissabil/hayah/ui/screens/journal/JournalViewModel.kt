@@ -39,7 +39,9 @@ class JournalViewModel(
             journalEntryDao.getAllEntries().collect { entities ->
                 val entries = entities.map { entity ->
                     JournalEntry(
+                        entryId = entity.id,
                         surahVerse = entity.surahVerse,
+                        verseKey = entity.verseKey,
                         tag = entity.tag,
                         tagStyle = TagStyle.entries.getOrElse(entity.tagStyleOrdinal) { TagStyle.PRIMARY },
                         reflection = entity.reflection,

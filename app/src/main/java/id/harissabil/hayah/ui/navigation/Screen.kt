@@ -23,5 +23,24 @@ sealed class Screen(
         Icons.AutoMirrored.Outlined.MenuBook
     )
     object Settings : Screen("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
-    object QuranReading : Screen("quran_reading")
+    object QuranReading : Screen("quran_reading/{pageNumber}?entryId={entryId}&highlightedVerseKey={highlightedVerseKey}") {
+        fun createRoute(pageNumber: Int, entryId: Long = -1L, highlightedVerseKey: String? = null): String {
+            return buildString {
+                append("quran_reading/$pageNumber")
+
+                val queryParams = mutableListOf<String>()
+
+                if (entryId != -1L) {
+                    queryParams.add("entryId=$entryId")
+                }
+                if (highlightedVerseKey != null) {
+                    queryParams.add("highlightedVerseKey=$highlightedVerseKey")
+                }
+
+                if (queryParams.isNotEmpty()) {
+                    append("?${queryParams.joinToString("&")}")
+                }
+            }
+        }
+    }
 }

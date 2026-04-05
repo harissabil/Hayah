@@ -227,7 +227,7 @@ fun HomeScreen(
 
             PeriodSelector(
                 selectedPeriod = uiState.selectedPeriod,
-                onPeriodClick = { /* TODO: show period picker */ }
+                onPeriodSelected = { viewModel.onPeriodSelected(it) }
             )
 
             Spacer(modifier = Modifier.weight(1f))

@@ -6,7 +6,9 @@ enum class TagStyle { PRIMARY, SECONDARY, TERTIARY }
 
 @Immutable
 data class JournalEntry(
+    val entryId: Long,
     val surahVerse: String,
+    val verseKey: String,
     val tag: String,
     val tagStyle: TagStyle,
     val reflection: String,

@@ -10,11 +10,13 @@ import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.AuthStateManager
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.db.dao.JournalEntryDao
+import id.harissabil.hayah.data.db.dao.ReadHistoryDao
 import id.harissabil.hayah.data.db.entity.JournalEntryEntity
 import id.harissabil.hayah.data.model.UserProfileResponse
 import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.NotificationHelper
 import id.harissabil.hayah.service.ReminderOrchestrator
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +28,7 @@ enum class Period { THIS_WEEK, THIS_MONTH, ALL_TIME }
 
 data class HomeUiState(
     val userName: String = "",
-    val pagesRead: Int = 7,
+    val pagesRead: Int = 0,
     val selectedPeriod: Period = Period.THIS_WEEK,
     val profilePhotoUrl: String? = null,
     val isInstantReflectionLoading: Boolean = false,
@@ -42,6 +44,7 @@ class HomeViewModel(
     private val quranApiService: QuranApiService,
     private val verseRecommendationService: VerseRecommendationService,
     private val notificationHelper: NotificationHelper,
+    private val readHistoryDao: ReadHistoryDao,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -51,10 +54,33 @@ class HomeViewModel(
         private const val AUDIO_CDN_BASE = "https://verses.quran.com/"
     }
 
+    private var readCountJob: Job? = null
+
     init {
         viewModelScope.launch {
             authRepository.userProfile.collect { profile ->
                 updateFromProfile(profile)
+            }
+        }
+        observePagesRead(Period.THIS_WEEK)
+    }
+
+    private fun observePagesRead(period: Period) {
+        readCountJob?.cancel()
+        readCountJob = viewModelScope.launch {
+            val flow = when (period) {
+                Period.ALL_TIME -> readHistoryDao.countAllEntries()
+                Period.THIS_WEEK -> {
+                    val sevenDaysAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L
+                    readHistoryDao.countEntriesSince(sevenDaysAgo)
+                }
+                Period.THIS_MONTH -> {
+                    val thirtyDaysAgo = System.currentTimeMillis() - 30 * 24 * 60 * 60 * 1000L
+                    readHistoryDao.countEntriesSince(thirtyDaysAgo)
+                }
+            }
+            flow.collect { count ->
+                _uiState.update { it.copy(pagesRead = count) }
             }
         }
     }
@@ -78,6 +104,7 @@ class HomeViewModel(
 
     fun onPeriodSelected(period: Period) {
         _uiState.update { it.copy(selectedPeriod = period) }
+        observePagesRead(period)
     }
 
     fun dismissInstantReflectionError() {
@@ -86,6 +113,7 @@ class HomeViewModel(
 
     fun dismissNewlyGeneratedEntry() {
         _uiState.update { it.copy(newlyGeneratedEntry = null) }
+        notificationHelper.stopVerseAudio()
     }
 
     fun generateInstantReflection() {

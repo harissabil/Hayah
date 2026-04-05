@@ -21,7 +21,7 @@ import java.util.UUID
 
 @Composable
 fun JournalScreen(
-    onNavigateToQuranReader: () -> Unit,
+    onNavigateToQuranReader: (entryId: Long, pageNumber: Int, verseKey: String?) -> Unit,
     viewModel: JournalViewModel = koinViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -55,7 +55,13 @@ fun JournalScreen(
                     ) { entry ->
                         JournalEntryCard(
                             entry = entry,
-                            onClick = onNavigateToQuranReader
+                            onClick = {
+                                onNavigateToQuranReader(
+                                    entry.entryId,
+                                    entry.pageNumber,
+                                    entry.verseKey
+                                )
+                            }
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
