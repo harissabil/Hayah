@@ -35,6 +35,11 @@ class ActivityTransitionReceiver : BroadcastReceiver(), KoinComponent {
                 else -> null
             }
 
+            Log.d(
+                TAG,
+                "Detected activity transition: type=${event.activityType} → $activityName, transition=${event.transitionType}"
+            )
+
             if (activityName != null) {
                 val keyword = TriggerKeywords.ACTIVITY_KEYWORDS[activityName]
                 if (keyword != null) {

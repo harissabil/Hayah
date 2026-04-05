@@ -152,6 +152,7 @@ class ReminderOrchestrator(
                 reflection = verse.reflection,
                 translation = verse.translation,
                 audioUrl = verse.audioUrl,
+                pageNumber = verse.pageNumber,
                 timestamp = now,
                 isUnread = true,
             )
