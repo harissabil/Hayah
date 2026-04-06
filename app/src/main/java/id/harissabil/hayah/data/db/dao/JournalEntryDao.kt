@@ -8,7 +8,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface JournalEntryDao {
-
     @Query("SELECT * FROM journal_entries ORDER BY timestamp DESC")
     fun getAllEntries(): Flow<List<JournalEntryEntity>>
 
@@ -19,7 +18,10 @@ interface JournalEntryDao {
     suspend fun markAsRead(id: Long)
 
     @Query("SELECT COUNT(*) FROM journal_entries WHERE tag = :keyword AND timestamp > :sinceTime")
-    suspend fun countEntriesForKeywordSince(keyword: String, sinceTime: Long): Int
+    suspend fun countEntriesForKeywordSince(
+        keyword: String,
+        sinceTime: Long,
+    ): Int
 
     @Query("SELECT COUNT(*) FROM journal_entries WHERE timestamp > :sinceTime")
     suspend fun countEntriesSince(sinceTime: Long): Int

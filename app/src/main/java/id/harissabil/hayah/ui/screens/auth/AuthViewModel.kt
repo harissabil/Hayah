@@ -18,22 +18,22 @@ import kotlinx.coroutines.launch
 class AuthViewModel(
     private val authRepository: AuthRepository,
 ) : ViewModel() {
-
-    val authUiState: StateFlow<AuthUiState> = combine(
-        authRepository.isLoading,
-        authRepository.isAuthenticated,
-        authRepository.userProfile,
-    ) { loading, authenticated, profile ->
-        when {
-            loading -> AuthUiState.Loading
-            authenticated -> AuthUiState.Authenticated(profile)
-            else -> AuthUiState.Unauthenticated
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = AuthUiState.Loading,
-    )
+    val authUiState: StateFlow<AuthUiState> =
+        combine(
+            authRepository.isLoading,
+            authRepository.isAuthenticated,
+            authRepository.userProfile,
+        ) { loading, authenticated, profile ->
+            when {
+                loading -> AuthUiState.Loading
+                authenticated -> AuthUiState.Authenticated(profile)
+                else -> AuthUiState.Unauthenticated
+            }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = AuthUiState.Loading,
+        )
 
     init {
         viewModelScope.launch {
@@ -67,6 +67,10 @@ class AuthViewModel(
 
 sealed class AuthUiState {
     data object Loading : AuthUiState()
+
     data object Unauthenticated : AuthUiState()
-    data class Authenticated(val profile: UserProfileResponse?) : AuthUiState()
+
+    data class Authenticated(
+        val profile: UserProfileResponse?,
+    ) : AuthUiState()
 }

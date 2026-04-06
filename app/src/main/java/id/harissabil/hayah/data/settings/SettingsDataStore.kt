@@ -12,4 +12,3 @@ import androidx.datastore.preferences.preferencesDataStore
  * for the same backing file.
  */
 val Context.hayahSettingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "hayah_settings")
-

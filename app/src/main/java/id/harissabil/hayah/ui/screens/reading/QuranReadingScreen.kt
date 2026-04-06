@@ -69,7 +69,7 @@ fun QuranReadingScreen(
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(end = 48.dp)
+                            modifier = Modifier.padding(end = 48.dp),
                         ) {
                             val titleText = uiState.chapterName.ifEmpty { "Unknown Surah" }
 
@@ -78,14 +78,14 @@ fun QuranReadingScreen(
                                 fontFamily = ManropeFamily,
                                 fontWeight = FontWeight.SemiBold,
                                 color = MaterialTheme.colorScheme.primary,
-                                style = MaterialTheme.typography.titleMedium
+                                style = MaterialTheme.typography.titleMedium,
                             )
                             Text(
                                 text = "Page ${uiState.pageNumber}",
                                 fontFamily = ManropeFamily,
                                 fontWeight = FontWeight.Normal,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                style = MaterialTheme.typography.labelMedium
+                                style = MaterialTheme.typography.labelMedium,
                             )
                         }
                     }
@@ -95,17 +95,18 @@ fun QuranReadingScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Navigate Back",
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f)
-                ),
-                windowInsets = WindowInsets.statusBars
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                    ),
+                windowInsets = WindowInsets.statusBars,
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
     ) { paddingValues ->
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -118,10 +119,11 @@ fun QuranReadingScreen(
         } else {
             LazyColumn(
                 state = listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp),
             ) {
                 items(uiState.verses, key = { it.verseKey ?: it.hashCode() }) { verse ->
                     val isHighlighted = verse.verseKey == uiState.highlightedVerseKey
@@ -134,7 +136,7 @@ fun QuranReadingScreen(
                         isPosting = uiState.isPosting,
                         postSuccess = uiState.postSuccess,
                         error = if (uiState.hasReachedBottom) uiState.error else null,
-                        readingSeconds = uiState.readingSeconds
+                        readingSeconds = uiState.readingSeconds,
                     )
                 }
             }

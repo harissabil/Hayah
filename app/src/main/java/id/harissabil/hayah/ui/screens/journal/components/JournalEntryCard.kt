@@ -37,29 +37,31 @@ fun JournalEntryCard(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-            .clickable { onClick() }
-            .padding(24.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+                .clickable { onClick() }
+                .padding(24.dp),
     ) {
         // Header row
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 if (!entry.isUnread) {
                     Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
+                        modifier =
+                            Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary),
                     )
                 } else {
                     Spacer(modifier = Modifier.size(10.dp))
@@ -69,7 +71,7 @@ fun JournalEntryCard(
                     text = entry.surahVerse,
                     style = MaterialTheme.typography.titleLarge.copy(fontSize = 20.sp),
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
             }
             TagPill(tag = entry.tag, style = entry.tagStyle)
@@ -86,10 +88,11 @@ fun JournalEntryCard(
         Spacer(modifier = Modifier.height(20.dp))
 
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -97,28 +100,28 @@ fun JournalEntryCard(
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Text(
                 text = entry.date,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f),
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable { onClick() }
+                modifier = Modifier.clickable { onClick() },
             ) {
                 Text(
                     text = "Read Full Page",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
                 Icon(
                     imageVector = Icons.Filled.ArrowForwardIos,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }
@@ -126,7 +129,10 @@ fun JournalEntryCard(
 }
 
 @Composable
-private fun TagPill(tag: String, style: TagStyle) {
+private fun TagPill(
+    tag: String,
+    style: TagStyle,
+) {
     val bg: Color
     val fg: Color
     when (style) {
@@ -146,19 +152,21 @@ private fun TagPill(tag: String, style: TagStyle) {
         }
     }
     Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(bg)
-            .padding(horizontal = 14.dp, vertical = 6.dp)
+        modifier =
+            Modifier
+                .clip(CircleShape)
+                .background(bg)
+                .padding(horizontal = 14.dp, vertical = 6.dp),
     ) {
         Text(
             text = tag.uppercase(),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = 10.sp,
-                letterSpacing = 1.sp
-            ),
+            style =
+                MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 10.sp,
+                    letterSpacing = 1.sp,
+                ),
             fontWeight = FontWeight.Bold,
-            color = fg
+            color = fg,
         )
     }
 }

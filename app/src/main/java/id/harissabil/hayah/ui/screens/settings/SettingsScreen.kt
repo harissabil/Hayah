@@ -93,7 +93,7 @@ fun SettingsScreen(
                     uiState.isRecitersLoading -> {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center
+                            horizontalArrangement = Arrangement.Center,
                         ) {
                             CircularProgressIndicator()
                         }
@@ -103,7 +103,7 @@ fun SettingsScreen(
                         uiState.reciterError?.let { error ->
                             Text(
                                 text = error,
-                                color = MaterialTheme.colorScheme.error
+                                color = MaterialTheme.colorScheme.error,
                             )
                         }
                     }
@@ -114,35 +114,36 @@ fun SettingsScreen(
 
                     else -> {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 320.dp)
-                                .verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(2.dp)
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 320.dp)
+                                    .verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
                         ) {
                             uiState.reciterOptions.forEach { option ->
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .clickable {
-                                            viewModel.onReciterSelected(option.id, option.name)
-                                        }
-                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .clickable {
+                                                viewModel.onReciterSelected(option.id, option.name)
+                                            }.padding(horizontal = 12.dp, vertical = 10.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     Text(
                                         text = option.name,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
+                                        color = MaterialTheme.colorScheme.onSurface,
                                     )
                                     if (option.id == uiState.reciterId) {
                                         Spacer(modifier = Modifier.width(4.dp))
                                         Icon(
                                             imageVector = Icons.Filled.CheckCircle,
                                             contentDescription = "Selected",
-                                            tint = MaterialTheme.colorScheme.primary
+                                            tint = MaterialTheme.colorScheme.primary,
                                         )
                                     }
                                 }
@@ -155,33 +156,38 @@ fun SettingsScreen(
                 TextButton(onClick = viewModel::onReciterDialogDismissed) {
                     Text("Close")
                 }
-            }
+            },
         )
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface),
     ) {
         TopAppBar(
             title = {
                 Text(
-                    "Settings", style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary
+                    "Settings",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             },
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f)
-            )
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                ),
         )
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(32.dp),
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -193,24 +199,25 @@ fun SettingsScreen(
                     iconTint = MaterialTheme.colorScheme.secondary,
                     title = "Preferred Reciter",
                     subtitle = uiState.reciterName,
-                    onClick = viewModel::onReciterPickerRequested
+                    onClick = viewModel::onReciterPickerRequested,
                 )
             }
 
             // Notifications
             SettingsSection(label = "Notifications") {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 20.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         SettingsIconBox(
                             icon = Icons.Filled.PlayCircle,
                             bg = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.2f),
-                            tint = MaterialTheme.colorScheme.tertiary
+                            tint = MaterialTheme.colorScheme.tertiary,
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column {
@@ -218,42 +225,44 @@ fun SettingsScreen(
                                 text = "Play Audio Instantly",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = "When notification pops up",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
                     Switch(
                         checked = uiState.playAudioInstantly,
                         onCheckedChange = viewModel::onPlayAudioToggled,
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = MaterialTheme.colorScheme.primary,
-                            uncheckedThumbColor = MaterialTheme.colorScheme.outlineVariant,
-                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
+                        colors =
+                            SwitchDefaults.colors(
+                                checkedThumbColor = Color.White,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary,
+                                uncheckedThumbColor = MaterialTheme.colorScheme.outlineVariant,
+                                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            ),
                     )
                 }
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .padding(bottom = 16.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceBetween,
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             SettingsIconBox(
                                 icon = Icons.Filled.NotificationsActive,
                                 bg = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-                                tint = MaterialTheme.colorScheme.primary
+                                tint = MaterialTheme.colorScheme.primary,
                             )
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
@@ -261,12 +270,12 @@ fun SettingsScreen(
                                     "Max Reminders",
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = MaterialTheme.colorScheme.onSurface,
                                 )
                                 Text(
                                     "Daily nudge frequency",
                                     style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
                             }
                         }
@@ -274,7 +283,7 @@ fun SettingsScreen(
                             uiState.maxReminders.toInt().toString(),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -284,42 +293,44 @@ fun SettingsScreen(
                         valueRange = 1f..10f,
                         steps = 8,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = SliderDefaults.colors(
-                            thumbColor = MaterialTheme.colorScheme.primary,
-                            activeTrackColor = MaterialTheme.colorScheme.primary,
-                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
+                        colors =
+                            SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,
+                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            ),
                     )
                 }
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .padding(bottom = 16.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         SettingsIconBox(
                             icon = Icons.Filled.HourglassEmpty,
                             bg = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         ) {
                             Text(
                                 text = "Quiet Duration",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = "Minimum pause after a reminder before sending the next one.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -328,7 +339,7 @@ fun SettingsScreen(
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                     Spacer(modifier = Modifier.height(8.dp))
@@ -338,43 +349,45 @@ fun SettingsScreen(
                         valueRange = 5f..120f,
                         steps = 22, // Menghasilkan lompatan per 5 menit (5, 10, 15, 20... 120)
                         modifier = Modifier.fillMaxWidth(),
-                        colors = SliderDefaults.colors(
-                            thumbColor = MaterialTheme.colorScheme.primary,
-                            activeTrackColor = MaterialTheme.colorScheme.primary,
-                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
+                        colors =
+                            SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,
+                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            ),
                     )
                 }
 
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(bottom = 16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .padding(bottom = 16.dp),
                 ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         SettingsIconBox(
                             icon = Icons.Default.Tune,
                             bg = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f),
-                            tint = MaterialTheme.colorScheme.secondary
+                            tint = MaterialTheme.colorScheme.secondary,
                         )
                         Spacer(modifier = Modifier.width(16.dp))
                         Column(
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
                         ) {
                             Text(
                                 text = "Detection Sensitivity",
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface
+                                color = MaterialTheme.colorScheme.onSurface,
                             )
                             Text(
                                 text = "Number of detections required before a nudge is sent.",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                         Spacer(modifier = Modifier.width(16.dp))
@@ -382,7 +395,7 @@ fun SettingsScreen(
                             text = "${uiState.detectionThreshold.toInt()}x",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.secondary,
                         )
                     }
 
@@ -394,11 +407,12 @@ fun SettingsScreen(
                         valueRange = 1f..10f,
                         steps = 8, // Menghasilkan titik di 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
                         modifier = Modifier.fillMaxWidth(),
-                        colors = SliderDefaults.colors(
-                            thumbColor = MaterialTheme.colorScheme.secondary,
-                            activeTrackColor = MaterialTheme.colorScheme.secondary,
-                            inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
+                        colors =
+                            SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.secondary,
+                                activeTrackColor = MaterialTheme.colorScheme.secondary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            ),
                     )
                 }
             }
@@ -409,136 +423,178 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 AppearancePicker(
                     selected = uiState.appTheme,
-                    onSelect = viewModel::onThemeSelected
+                    onSelect = viewModel::onThemeSelected,
                 )
             }
 
             // Permissions Health
             SettingsSection(label = "Permissions Health") {
                 PermissionRow(
-                    iconBg = if (uiState.isAccessibilityEnabled) Color(0xFFDCFCE7) else Color(
-                        0xFFFFF7ED
-                    ),
-                    iconTint = if (uiState.isAccessibilityEnabled) Color(0xFF16A34A) else Color(
-                        0xFFEA580C
-                    ),
+                    iconBg =
+                        if (uiState.isAccessibilityEnabled) {
+                            Color(0xFFDCFCE7)
+                        } else {
+                            Color(
+                                0xFFFFF7ED,
+                            )
+                        },
+                    iconTint =
+                        if (uiState.isAccessibilityEnabled) {
+                            Color(0xFF16A34A)
+                        } else {
+                            Color(
+                                0xFFEA580C,
+                            )
+                        },
                     icon = if (uiState.isAccessibilityEnabled) Icons.Filled.CheckCircle else Icons.Filled.Accessibility,
                     title = "Accessibility Service",
                     subtitle = if (uiState.isAccessibilityEnabled) "Enabled" else "Required for screen scanning",
                     action = {
                         if (uiState.isAccessibilityEnabled) {
                             Text(
-                                "Active", style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold, color = Color(0xFF16A34A)
+                                "Active",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF16A34A),
                             )
                         } else {
                             Box(
-                                modifier = Modifier
-                                    .clip(CircleShape)
-                                    .background(MaterialTheme.colorScheme.primary)
-                                    .clickable {
-                                        context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                        })
-                                    }
-                                    .padding(horizontal = 16.dp, vertical = 6.dp)) {
+                                modifier =
+                                    Modifier
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
+                                        .clickable {
+                                            context.startActivity(
+                                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                                },
+                                            )
+                                        }.padding(horizontal = 16.dp, vertical = 6.dp),
+                            ) {
                                 Text(
-                                    "Enable", style = MaterialTheme.typography.labelLarge,
-                                    fontWeight = FontWeight.Bold, color = Color.White
+                                    "Enable",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
                                 )
                             }
                         }
-                    }
+                    },
                 )
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
                 )
                 PermissionRow(
-                    iconBg = Color(0xFFDCFCE7), iconTint = Color(0xFF16A34A),
+                    iconBg = Color(0xFFDCFCE7),
+                    iconTint = Color(0xFF16A34A),
                     icon = Icons.Filled.CheckCircle,
-                    title = "Activity Recognition", subtitle = "Authorized",
+                    title = "Activity Recognition",
+                    subtitle = "Authorized",
                     action = {
                         Text(
-                            "Manage", style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable {
-                                val intent =
-                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                        data = Uri.fromParts("package", context.packageName, null)
-                                    }
-                                context.startActivity(intent)
-                            })
-                    }
+                            "Manage",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier =
+                                Modifier.clickable {
+                                    val intent =
+                                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                            data = Uri.fromParts("package", context.packageName, null)
+                                        }
+                                    context.startActivity(intent)
+                                },
+                        )
+                    },
                 )
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(1.dp)
-                        .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f))
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.15f)),
                 )
                 PermissionRow(
-                    iconBg = Color(0xFFDCFCE7), iconTint = Color(0xFF16A34A),
+                    iconBg = Color(0xFFDCFCE7),
+                    iconTint = Color(0xFF16A34A),
                     icon = Icons.Filled.CheckCircle,
-                    title = "Notification Access", subtitle = "Authorized",
+                    title = "Notification Access",
+                    subtitle = "Authorized",
                     action = {
                         Text(
-                            "Manage", style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable {
-                                val intent =
-                                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                        putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                    }
-                                context.startActivity(intent)
-                            })
-                    }
+                            "Manage",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier =
+                                Modifier.clickable {
+                                    val intent =
+                                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                        }
+                                    context.startActivity(intent)
+                                },
+                        )
+                    },
                 )
             }
 
             // Logout
             SettingsSection(label = "Account") {
                 PermissionRow(
-                    iconBg = Color(0xFFFEE2E2), iconTint = Color(0xFFDC2626),
+                    iconBg = Color(0xFFFEE2E2),
+                    iconTint = Color(0xFFDC2626),
                     icon = Icons.AutoMirrored.Filled.Logout,
-                    title = "Log Out", subtitle = "Sign out of Quran.com",
+                    title = "Log Out",
+                    subtitle = "Sign out of Quran.com",
                     action = {
                         Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(Color(0xFFDC2626))
-                                .clickable { onLogout() }
-                                .padding(horizontal = 16.dp, vertical = 6.dp)) {
+                            modifier =
+                                Modifier
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFDC2626))
+                                    .clickable { onLogout() }
+                                    .padding(horizontal = 16.dp, vertical = 6.dp),
+                        ) {
                             Text(
-                                "Log Out", style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold, color = Color.White
+                                "Log Out",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
                             )
                         }
-                    }
+                    },
                 )
             }
 
             // Footer
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    "Hayah v0.0.1", style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center
+                    "Hayah v0.0.1",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
                 )
                 Text(
                     "Crafted for mindful reflection",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontStyle = FontStyle.Italic,
-                        fontSize = 11.sp
-                    ),
-                    color = MaterialTheme.colorScheme.outline, textAlign = TextAlign.Center
+                    style =
+                        MaterialTheme.typography.labelSmall.copy(
+                            fontStyle = FontStyle.Italic,
+                            fontSize = 11.sp,
+                        ),
+                    color = MaterialTheme.colorScheme.outline,
+                    textAlign = TextAlign.Center,
                 )
             }
 

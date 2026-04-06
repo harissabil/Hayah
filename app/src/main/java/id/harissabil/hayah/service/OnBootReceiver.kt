@@ -9,15 +9,20 @@ import org.koin.java.KoinJavaComponent.inject
 class OnBootReceiver : BroadcastReceiver() {
     val activityRecognitionManager: ActivityRecognitionManager by inject(ActivityRecognitionManager::class.java)
 
-    override fun onReceive(context: Context?, intent: Intent?) {
+    override fun onReceive(
+        context: Context?,
+        intent: Intent?,
+    ) {
         val action = intent?.action ?: return
         if (action != Intent.ACTION_BOOT_COMPLETED) return
 
-        val canTrack = context != null && (
-                android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q ||
+        val canTrack =
+            context != null &&
+                (
+                    android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q ||
                         androidx.core.content.ContextCompat.checkSelfPermission(
                             context,
-                            android.Manifest.permission.ACTIVITY_RECOGNITION
+                            android.Manifest.permission.ACTIVITY_RECOGNITION,
                         ) == android.content.pm.PackageManager.PERMISSION_GRANTED
                 )
 

@@ -32,26 +32,27 @@ fun HayahBottomBar(
 ) {
     // bg-[#fbf9f5] rounded-t-[24px] shadow-[0_-4px_40px_rgba(27,28,26,0.05)]
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(
-                elevation = 8.dp,
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f)
-            )
-            .background(
-                color = MaterialTheme.colorScheme.surface,
-                shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
-            )
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .shadow(
+                    elevation = 8.dp,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                    spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                ).background(
+                    color = MaterialTheme.colorScheme.surface,
+                    shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+                ),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .navigationBarsPadding()
-                .padding(horizontal = 16.dp)
-                .padding(top = 12.dp, bottom = 24.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp, bottom = 24.dp),
             horizontalArrangement = Arrangement.SpaceAround,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             screens.forEach { screen ->
                 val selected =
@@ -59,32 +60,44 @@ fun HayahBottomBar(
 
                 // Each nav item: a full-column pill when selected
                 Column(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .then(
-                            if (selected) Modifier.background(
-                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                            ) else Modifier
-                        )
-                        .clickable { onNavigate(screen) }
-                        .padding(horizontal = 20.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier =
+                        Modifier
+                            .clip(RoundedCornerShape(16.dp))
+                            .then(
+                                if (selected) {
+                                    Modifier.background(
+                                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+                                    )
+                                } else {
+                                    Modifier
+                                },
+                            ).clickable { onNavigate(screen) }
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     val iconToShow = if (selected) screen.icon else screen.iconOutlined
                     if (iconToShow != null) {
                         Icon(
                             imageVector = iconToShow,
                             contentDescription = screen.title,
-                            tint = if (selected) MaterialTheme.colorScheme.primary
-                            else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint =
+                                if (selected) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                         )
                     }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = screen.title ?: "",
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (selected) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
+                        color =
+                            if (selected) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
                     )
                 }
             }

@@ -60,9 +60,10 @@ fun OnboardingScreen(
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surface)
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.surface),
     ) {
         // Layer 1 — soft radial aura blobs (behind everything)
         AuraBlobs()
@@ -72,11 +73,12 @@ fun OnboardingScreen(
         //            which is what creates the seamless panorama swipe.
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopCenter)
-                // Pager height: leaves enough room at bottom for the action buttons
-                .padding(bottom = 220.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    // Pager height: leaves enough room at bottom for the action buttons
+                    .padding(bottom = 220.dp),
         ) { page ->
             OnboardingPageContent(page = uiState.pages[page])
         }
@@ -84,18 +86,18 @@ fun OnboardingScreen(
         // Layer 3 — fixed UI overlay: brand title (top) + actions (bottom)
         Column(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             // Brand title — sits above the pager image
             Spacer(modifier = Modifier.height(52.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.logo_hayah_transparent),
                     contentDescription = null,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(48.dp),
                 )
                 Text(
                     text = "Hayah",
@@ -103,7 +105,7 @@ fun OnboardingScreen(
                     fontWeight = FontWeight.Bold,
                     fontFamily = CairoFamily,
                     color = MaterialTheme.colorScheme.primary,
-                    letterSpacing = (-0.5).sp
+                    letterSpacing = (-0.5).sp,
                 )
             }
 
@@ -111,71 +113,74 @@ fun OnboardingScreen(
 
             // Bottom dock — indicators + CTAs are always pinned to the bottom
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 PagerIndicator(
                     pageCount = uiState.pages.size,
-                    currentPage = uiState.currentPage
+                    currentPage = uiState.currentPage,
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Primary CTA — launches Quran.com OAuth login
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                        .clip(RoundedCornerShape(50.dp))
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.secondary,
-                                    MaterialTheme.colorScheme.primaryContainer
-                                )
-                            )
-                        )
-                        .clickable { onLoginClick() },
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    colors =
+                                        listOf(
+                                            MaterialTheme.colorScheme.secondary,
+                                            MaterialTheme.colorScheme.primaryContainer,
+                                        ),
+                                ),
+                            ).clickable { onLoginClick() },
+                    contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Filled.AccountCircle,
                             contentDescription = null,
                             tint = Color.White,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(22.dp),
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
                             text = "Continue with Quran.com",
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
                 Text(
-                    text = buildAnnotatedString {
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
-                            append("By continuing, you agree to our ")
-                        }
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                            append("Terms of Service")
-                        }
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
-                            append(" & ")
-                        }
-                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                            append("Privacy Policy")
-                        }
-                    },
+                    text =
+                        buildAnnotatedString {
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
+                                append("By continuing, you agree to our ")
+                            }
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                                append("Terms of Service")
+                            }
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
+                                append(" & ")
+                            }
+                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                                append("Privacy Policy")
+                            }
+                        },
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(40.dp))
             }

@@ -35,7 +35,7 @@ fun AppearancePicker(
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         AppearanceCard(
             label = "Light",
@@ -44,20 +44,23 @@ fun AppearancePicker(
             onClick = { onSelect(AppTheme.LIGHT) },
             icon = {
                 Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceBright)
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceBright)
+                            .border(
+                                1.dp,
+                                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f),
+                                CircleShape,
+                            ),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        Icons.Filled.LightMode, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(32.dp)
+                        Icons.Filled.LightMode,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp),
                     )
                 }
             },
@@ -70,15 +73,18 @@ fun AppearancePicker(
             onClick = { onSelect(AppTheme.DARK) },
             icon = {
                 Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF1C1C1E)),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(Color(0xFF1C1C1E)),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Icon(
-                        Icons.Filled.DarkMode, contentDescription = null,
-                        tint = Color(0xFF9E9E9E), modifier = Modifier.size(32.dp)
+                        Icons.Filled.DarkMode,
+                        contentDescription = null,
+                        tint = Color(0xFF9E9E9E),
+                        modifier = Modifier.size(32.dp),
                     )
                 }
             },
@@ -91,15 +97,18 @@ fun AppearancePicker(
             onClick = { onSelect(AppTheme.SYSTEM) },
             icon = {
                 Box(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainerLow),
-                    contentAlignment = Alignment.Center
+                    modifier =
+                        Modifier
+                            .size(64.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerLow),
+                    contentAlignment = Alignment.Center,
                 ) {
                     Text(
-                        text = "A", style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary
+                        text = "A",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
             },
@@ -118,26 +127,30 @@ private fun AppearanceCard(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
-            .background(
-                if (isSelected) MaterialTheme.colorScheme.surfaceContainerLowest
-                else MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)
-            )
-            .border(
-                width = 2.dp,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
-                shape = RoundedCornerShape(24.dp)
-            )
-            .clickable { onClick() }
-            .padding(24.dp),
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    if (isSelected) {
+                        MaterialTheme.colorScheme.surfaceContainerLowest
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)
+                    },
+                ).border(
+                    width = 2.dp,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
+                    shape = RoundedCornerShape(24.dp),
+                ).clickable { onClick() }
+                .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         icon()
         Text(
-            text = label, style = MaterialTheme.typography.bodyLarge,
-            fontWeight = FontWeight.Bold, color = labelColor
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            color = labelColor,
         )
     }
 }

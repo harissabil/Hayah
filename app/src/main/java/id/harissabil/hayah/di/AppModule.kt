@@ -19,75 +19,76 @@ import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
-val appModule = module {
+val appModule =
+    module {
 
-    // ── Database ──────────────────────────────
-    single {
-        Room.databaseBuilder(
-            androidContext(),
-            HayahDatabase::class.java,
-            "hayah_database"
-        )
-            .fallbackToDestructiveMigration(true)
-        .build()
+        // ── Database ──────────────────────────────
+        single {
+            Room
+                .databaseBuilder(
+                    androidContext(),
+                    HayahDatabase::class.java,
+                    "hayah_database",
+                ).fallbackToDestructiveMigration(true)
+                .build()
+        }
+
+        single { get<HayahDatabase>().keywordCacheDao() }
+        single { get<HayahDatabase>().journalEntryDao() }
+        single { get<HayahDatabase>().readHistoryDao() }
+
+        // ── Auth data layer ──────────────────────
+        single { AuthStateManager(androidContext()) }
+        single { RetrofitClient.create() }
+        single {
+            AuthRepository(
+                context = androidContext(),
+                authStateManager = get(),
+                apiService = get(),
+            )
+        }
+
+        // ── AI ────────────────────────────────────
+        single { VerseRecommendationService() }
+
+        // ── Services ─────────────────────────────
+        single { NotificationHelper(androidContext()) }
+        single { ActivityRecognitionManager(androidContext()) }
+        single {
+            ReminderOrchestrator(
+                context = androidContext(),
+                authRepository = get(),
+                keywordCacheDao = get(),
+                journalEntryDao = get(),
+                quranApiService = get(),
+                verseRecommendationService = get(),
+                notificationHelper = get(),
+            )
+        }
+
+        // ── ViewModels ───────────────────────────
+        viewModel { AuthViewModel(get()) }
+        viewModel {
+            HomeViewModel(
+                authRepository = get(),
+                context = androidContext(),
+                journalEntryDao = get(),
+                quranApiService = get(),
+                verseRecommendationService = get(),
+                notificationHelper = get(),
+                readHistoryDao = get(),
+            )
+        }
+        viewModel { OnboardingViewModel() }
+        viewModel { JournalViewModel(get()) }
+        viewModel { SettingsViewModel(androidContext(), get(), get()) }
+        viewModel {
+            QuranReadingViewModel(
+                savedStateHandle = get(),
+                quranApiService = get(),
+                authRepository = get(),
+                readHistoryDao = get(),
+                journalEntryDao = get(),
+            )
+        }
     }
-
-    single { get<HayahDatabase>().keywordCacheDao() }
-    single { get<HayahDatabase>().journalEntryDao() }
-    single { get<HayahDatabase>().readHistoryDao() }
-
-    // ── Auth data layer ──────────────────────
-    single { AuthStateManager(androidContext()) }
-    single { RetrofitClient.create() }
-    single {
-        AuthRepository(
-            context = androidContext(),
-            authStateManager = get(),
-            apiService = get(),
-        )
-    }
-
-    // ── AI ────────────────────────────────────
-    single { VerseRecommendationService() }
-
-    // ── Services ─────────────────────────────
-    single { NotificationHelper(androidContext()) }
-    single { ActivityRecognitionManager(androidContext()) }
-    single {
-        ReminderOrchestrator(
-            context = androidContext(),
-            authRepository = get(),
-            keywordCacheDao = get(),
-            journalEntryDao = get(),
-            quranApiService = get(),
-            verseRecommendationService = get(),
-            notificationHelper = get(),
-        )
-    }
-
-    // ── ViewModels ───────────────────────────
-    viewModel { AuthViewModel(get()) }
-    viewModel {
-        HomeViewModel(
-            authRepository = get(),
-            context = androidContext(),
-            journalEntryDao = get(),
-            quranApiService = get(),
-            verseRecommendationService = get(),
-            notificationHelper = get(),
-            readHistoryDao = get(),
-        )
-    }
-    viewModel { OnboardingViewModel() }
-    viewModel { JournalViewModel(get()) }
-    viewModel { SettingsViewModel(androidContext(), get(), get()) }
-    viewModel {
-        QuranReadingViewModel(
-            savedStateHandle = get(),
-            quranApiService = get(),
-            authRepository = get(),
-            readHistoryDao = get(),
-            journalEntryDao = get(),
-        ) 
-    }
-}

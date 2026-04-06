@@ -26,23 +26,27 @@ fun PagerIndicator(
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(pageCount) { index ->
             val isActive = currentPage == index
             val indicatorWidth by animateDpAsState(
                 targetValue = if (isActive) 32.dp else 8.dp,
-                label = "indicator_width_$index"
+                label = "indicator_width_$index",
             )
             Box(
-                modifier = Modifier
-                    .height(8.dp)
-                    .width(indicatorWidth)
-                    .clip(CircleShape)
-                    .background(
-                        if (isActive) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.surfaceContainerHighest
-                    )
+                modifier =
+                    Modifier
+                        .height(8.dp)
+                        .width(indicatorWidth)
+                        .clip(CircleShape)
+                        .background(
+                            if (isActive) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerHighest
+                            },
+                        ),
             )
             if (index < pageCount - 1) Spacer(modifier = Modifier.width(8.dp))
         }

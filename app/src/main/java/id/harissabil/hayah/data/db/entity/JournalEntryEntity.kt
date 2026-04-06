@@ -11,30 +11,20 @@ import androidx.room.PrimaryKey
 data class JournalEntryEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-
     @ColumnInfo(name = "surah_verse")
-    val surahVerse: String,          // e.g. "Al-Baqarah: 153"
-
+    val surahVerse: String, // e.g. "Al-Baqarah: 153"
     @ColumnInfo(name = "verse_key")
-    val verseKey: String,            // e.g. "2:153"
-
-    val tag: String,                 // keyword that triggered this entry
-
+    val verseKey: String, // e.g. "2:153"
+    val tag: String, // keyword that triggered this entry
     @ColumnInfo(name = "tag_style")
-    val tagStyleOrdinal: Int,        // TagStyle.ordinal
-
+    val tagStyleOrdinal: Int, // TagStyle.ordinal
     val reflection: String,
-
     val translation: String,
-
     @ColumnInfo(name = "audio_url")
     val audioUrl: String? = null,
-
     @ColumnInfo(name = "page_number")
     val pageNumber: Int,
-
-    val timestamp: Long,             // epoch millis
-
+    val timestamp: Long, // epoch millis
     @ColumnInfo(name = "is_unread")
     val isUnread: Boolean = true,
 )

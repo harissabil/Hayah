@@ -49,7 +49,6 @@ class QuranReadingViewModel(
     private val readHistoryDao: ReadHistoryDao,
     private val journalEntryDao: JournalEntryDao,
 ) : ViewModel() {
-
     companion object {
         private const val TAG = "QuranReadingVM"
         private const val POST_ACTIVITY_TIMEOUT_MS = 8_000L
@@ -60,12 +59,13 @@ class QuranReadingViewModel(
     private val pageNumber: Int = checkNotNull(savedStateHandle["pageNumber"])
     private val highlightedVerseKey: String? = savedStateHandle.get<String>("highlightedVerseKey")
 
-    private val _uiState = MutableStateFlow(
-        QuranReadingUiState(
-            pageNumber = pageNumber,
-            highlightedVerseKey = highlightedVerseKey
+    private val _uiState =
+        MutableStateFlow(
+            QuranReadingUiState(
+                pageNumber = pageNumber,
+                highlightedVerseKey = highlightedVerseKey,
+            ),
         )
-    )
     val uiState: StateFlow<QuranReadingUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
@@ -81,11 +81,12 @@ class QuranReadingViewModel(
                 val token =
                     authRepository.getValidAccessToken() ?: throw Exception("Not authenticated")
 
-                val response = quranApiService.getVersesByPage(
-                    accessToken = token,
-                    clientId = QuranOAuthConfig.clientId,
-                    pageNumber = pageNumber
-                )
+                val response =
+                    quranApiService.getVersesByPage(
+                        accessToken = token,
+                        clientId = QuranOAuthConfig.clientId,
+                        pageNumber = pageNumber,
+                    )
 
                 // For chapter name, we will try to extract from the first and last verse of the page. If they belong to different chapters, we will show both.
                 val versesList = response.verses ?: emptyList()
@@ -98,7 +99,8 @@ class QuranReadingViewModel(
                     // Fungsi helper untuk mengekstrak chapterId (termasuk fallback verseKey)
                     fun getChapterIdSafe(verse: VerseDetail): Int {
                         // Asumsi verseKey formatnya "chapterId:verseNumber" misal "2:255"
-                        return verse.chapterId ?: verse.verseKey?.substringBefore(":")
+                        return verse.chapterId ?: verse.verseKey
+                            ?.substringBefore(":")
                             ?.toIntOrNull() ?: 0
                     }
 
@@ -106,16 +108,19 @@ class QuranReadingViewModel(
                     val lastChapterId = getChapterIdSafe(lastVerse)
 
                     try {
-                        val chaptersResponse = quranApiService.getChapters(
-                            accessToken = token,
-                            clientId = QuranOAuthConfig.clientId
-                        )
+                        val chaptersResponse =
+                            quranApiService.getChapters(
+                                accessToken = token,
+                                clientId = QuranOAuthConfig.clientId,
+                            )
                         val chapters = chaptersResponse.chapters ?: emptyList()
 
-                        val firstChapterName = chapters.find { it.id == firstChapterId }?.nameSimple
-                            ?: "Surah $firstChapterId"
-                        val lastChapterName = chapters.find { it.id == lastChapterId }?.nameSimple
-                            ?: "Surah $lastChapterId"
+                        val firstChapterName =
+                            chapters.find { it.id == firstChapterId }?.nameSimple
+                                ?: "Surah $firstChapterId"
+                        val lastChapterName =
+                            chapters.find { it.id == lastChapterId }?.nameSimple
+                                ?: "Surah $lastChapterId"
 
                         // Jika chapter pertama dan terakhir berbeda, gabungkan. Jika sama, tampilkan satu saja.
                         finalChapterTitle =
@@ -133,7 +138,7 @@ class QuranReadingViewModel(
                     it.copy(
                         isLoading = false,
                         verses = response.verses ?: emptyList(),
-                        chapterName = finalChapterTitle
+                        chapterName = finalChapterTitle,
                     )
                 }
                 startTimer()
@@ -144,17 +149,16 @@ class QuranReadingViewModel(
         }
     }
 
-    private fun isRetriablePostError(error: Throwable): Boolean {
-        return when (error) {
+    private fun isRetriablePostError(error: Throwable): Boolean =
+        when (error) {
             is SocketTimeoutException,
             is TimeoutCancellationException,
             is IOException,
-                -> true
+            -> true
 
             is HttpException -> error.code() in 500..599
             else -> false
         }
-    }
 
     private suspend fun postActivityWithRetry(
         timezone: String,
@@ -191,15 +195,16 @@ class QuranReadingViewModel(
                 }
 
                 if (attempt < POST_ACTIVITY_MAX_ATTEMPTS) {
-                    val backoffMs = when (attempt) {
-                        1 -> 400L
-                        2 -> 900L
-                        else -> 1_500L
-                    }
+                    val backoffMs =
+                        when (attempt) {
+                            1 -> 400L
+                            2 -> 900L
+                            else -> 1_500L
+                        }
                     Log.w(
                         TAG,
                         "postActivityDays failed attempt=$attempt, retrying in ${backoffMs}ms",
-                        e
+                        e,
                     )
                     delay(backoffMs)
                 }
@@ -211,12 +216,13 @@ class QuranReadingViewModel(
 
     private fun startTimer() {
         timerJob?.cancel()
-        timerJob = viewModelScope.launch {
-            while (true) {
-                delay(1000L)
-                _uiState.update { it.copy(readingSeconds = it.readingSeconds + 1) }
+        timerJob =
+            viewModelScope.launch {
+                while (true) {
+                    delay(1000L)
+                    _uiState.update { it.copy(readingSeconds = it.readingSeconds + 1) }
+                }
             }
-        }
     }
 
     fun onBottomReached() {
@@ -237,8 +243,8 @@ class QuranReadingViewModel(
                     ReadHistoryEntity(
                         pageNumber = pageNumber,
                         timestamp = System.currentTimeMillis(),
-                        totalTimeReadSeconds = state.readingSeconds
-                    )
+                        totalTimeReadSeconds = state.readingSeconds,
+                    ),
                 )
 
                 journalEntryDao.markAsRead(
@@ -250,12 +256,13 @@ class QuranReadingViewModel(
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
                 val dateStr = dateFormat.format(Date())
 
-                val request = ActivityDayRequest(
-                    date = dateStr,
-                    type = "QURAN",
-                    seconds = state.readingSeconds,
-                    ranges = listOf("$firstVerse-$lastVerse")
-                )
+                val request =
+                    ActivityDayRequest(
+                        date = dateStr,
+                        type = "QURAN",
+                        seconds = state.readingSeconds,
+                        ranges = listOf("$firstVerse-$lastVerse"),
+                    )
 
                 postActivityWithRetry(
                     timezone = currentTimeZone,
@@ -263,7 +270,6 @@ class QuranReadingViewModel(
                 )
 
                 _uiState.update { it.copy(isPosting = false, postSuccess = true) }
-
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to post activity after retries", e)
                 // Even if API fails, we already inserted locally. We show an error slightly but don't unset hasReachedBottom.
@@ -271,7 +277,7 @@ class QuranReadingViewModel(
                     it.copy(
                         isPosting = false,
                         postSuccess = false,
-                        error = "Failed to synchronize progress to Quran.com."
+                        error = "Failed to synchronize progress to Quran.com.",
                     )
                 }
             }

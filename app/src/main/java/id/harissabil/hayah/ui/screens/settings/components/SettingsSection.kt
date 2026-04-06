@@ -24,7 +24,7 @@ fun SettingsSectionLabel(
         style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp, letterSpacing = 1.5.sp),
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f),
-        modifier = modifier.padding(start = 4.dp)
+        modifier = modifier.padding(start = 4.dp),
     )
 }
 
@@ -36,14 +36,17 @@ fun SettingsSection(
 ) {
     androidx.compose.foundation.layout.Column(modifier = modifier) {
         SettingsSectionLabel(label = label)
-        androidx.compose.foundation.layout.Spacer(modifier = Modifier.padding(top = 12.dp))
+        androidx.compose.foundation.layout
+            .Spacer(modifier = Modifier.padding(top = 12.dp))
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainerLowest)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerLowest),
         ) {
-            androidx.compose.foundation.layout.Column { content() }
+            androidx.compose.foundation.layout
+                .Column { content() }
         }
     }
 }

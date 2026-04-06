@@ -18,18 +18,20 @@ import org.koin.core.component.inject
  * - TYPE_WINDOW_CONTENT_CHANGED (screen text)
  */
 @SuppressLint("AccessibilityPolicy")
-class HayahAccessibilityService : AccessibilityService(), KoinComponent {
-
+class HayahAccessibilityService :
+    AccessibilityService(),
+    KoinComponent {
     companion object {
         private const val TAG = "HayahAccessibility"
         private const val SCAN_COOLDOWN_MS = 1000L // avoid processing too frequently
         private const val KEYWORD_RETRIGGER_COOLDOWN_MS = 3000L
 
-        private val EXCLUDED_PACKAGES = setOf(
-            "id.harissabil.hayah",
-            "com.android.systemui",
-            "com.android.settings",
-        )
+        private val EXCLUDED_PACKAGES =
+            setOf(
+                "id.harissabil.hayah",
+                "com.android.systemui",
+                "com.android.settings",
+            )
     }
 
     private val orchestrator: ReminderOrchestrator by inject()
@@ -59,7 +61,6 @@ class HayahAccessibilityService : AccessibilityService(), KoinComponent {
             Log.d(TAG, "TEXT EMPTY")
             return
         }
-
 
         lastScanTime = now
 
@@ -92,17 +93,18 @@ class HayahAccessibilityService : AccessibilityService(), KoinComponent {
     override fun onServiceConnected() {
         super.onServiceConnected()
 
-        val info = AccessibilityServiceInfo().apply {
-            eventTypes =
-                AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
-                        AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
-                        AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
-                        AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
+        val info =
+            AccessibilityServiceInfo().apply {
+                eventTypes =
+                    AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED or
+                    AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED or
+                    AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED or
+                    AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED
 
-            feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
-            notificationTimeout = 100
-            flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
-        }
+                feedbackType = AccessibilityServiceInfo.FEEDBACK_GENERIC
+                notificationTimeout = 100
+                flags = AccessibilityServiceInfo.FLAG_REPORT_VIEW_IDS
+            }
 
         serviceInfo = info
 
@@ -147,10 +149,11 @@ class HayahAccessibilityService : AccessibilityService(), KoinComponent {
         return builder.toString()
     }
 
-    private fun eventTypeName(type: Int): String = when (type) {
-        AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> "notification"
-        AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> "screen_content"
-        AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> "screen_content"
-        else -> "event_$type"
-    }
+    private fun eventTypeName(type: Int): String =
+        when (type) {
+            AccessibilityEvent.TYPE_NOTIFICATION_STATE_CHANGED -> "notification"
+            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> "screen_content"
+            AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED -> "screen_content"
+            else -> "event_$type"
+        }
 }

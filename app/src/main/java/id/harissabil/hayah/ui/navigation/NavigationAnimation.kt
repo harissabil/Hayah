@@ -19,27 +19,27 @@ fun NavGraphBuilder.slideContainerAnimationComposable(
         enterTransition = {
             slideIntoContainer(
                 AnimatedContentTransitionScope.SlideDirection.Up,
-                animationSpec = tween(500)
+                animationSpec = tween(500),
             ) + fadeIn(animationSpec = tween(500))
         },
         exitTransition = {
             slideOutOfContainer(
                 AnimatedContentTransitionScope.SlideDirection.Down,
-                animationSpec = tween(500)
+                animationSpec = tween(500),
             ) + fadeOut(animationSpec = tween(500))
         },
         popEnterTransition = {
             slideIntoContainer(
                 AnimatedContentTransitionScope.SlideDirection.Up,
-                animationSpec = tween(500)
+                animationSpec = tween(500),
             ) + fadeIn(animationSpec = tween(500))
         },
         popExitTransition = {
             slideOutOfContainer(
                 AnimatedContentTransitionScope.SlideDirection.Down,
-                animationSpec = tween(500)
+                animationSpec = tween(500),
             ) + fadeOut(animationSpec = tween(500))
-        }
+        },
     ) {
         content(it)
     }

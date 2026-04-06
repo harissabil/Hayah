@@ -9,58 +9,69 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import id.harissabil.hayah.R
 
-val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
+val provider =
+    GoogleFont.Provider(
+        providerAuthority = "com.google.android.gms.fonts",
+        providerPackage = "com.google.android.gms",
+        certificates = R.array.com_google_android_gms_fonts_certs,
+    )
 
 val ManropeFont = GoogleFont("Manrope")
 val JakartaFont = GoogleFont("Plus Jakarta Sans")
 val CairoFont = GoogleFont("Cairo")
 
-val ManropeFamily = FontFamily(
-    Font(googleFont = ManropeFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = ManropeFont, fontProvider = provider, weight = FontWeight.Bold)
-)
+val ManropeFamily =
+    FontFamily(
+        Font(googleFont = ManropeFont, fontProvider = provider, weight = FontWeight.Normal),
+        Font(googleFont = ManropeFont, fontProvider = provider, weight = FontWeight.Bold),
+    )
 
-val JakartaFamily = FontFamily(
-    Font(googleFont = JakartaFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = JakartaFont, fontProvider = provider, weight = FontWeight.SemiBold)
-)
+val JakartaFamily =
+    FontFamily(
+        Font(googleFont = JakartaFont, fontProvider = provider, weight = FontWeight.Normal),
+        Font(googleFont = JakartaFont, fontProvider = provider, weight = FontWeight.SemiBold),
+    )
 
-val CairoFamily = FontFamily(
-    Font(googleFont = CairoFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = CairoFont, fontProvider = provider, weight = FontWeight.Bold),
-)
+val CairoFamily =
+    FontFamily(
+        Font(googleFont = CairoFont, fontProvider = provider, weight = FontWeight.Normal),
+        Font(googleFont = CairoFont, fontProvider = provider, weight = FontWeight.Bold),
+    )
 
-val UthmaniFamily = FontFamily(
-    androidx.compose.ui.text.font.Font(resId = R.font.uthmanic_regular, weight = FontWeight.Normal),
-)
+val UthmaniFamily =
+    FontFamily(
+        androidx.compose.ui.text.font
+            .Font(resId = R.font.uthmanic_regular, weight = FontWeight.Normal),
+    )
 
 // Set of Material typography styles to start with
-val Typography = Typography(
-    displayLarge = TextStyle(
-        fontFamily = ManropeFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 56.sp,
-        letterSpacing = (-1.12).sp
-    ),
-    headlineMedium = TextStyle(
-        fontFamily = ManropeFamily,
-        fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
-    ),
-    titleLarge = TextStyle(
-        fontFamily = JakartaFamily,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-    ),
-    bodyLarge = TextStyle(
-        fontFamily = JakartaFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+val Typography =
+    Typography(
+        displayLarge =
+            TextStyle(
+                fontFamily = ManropeFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 56.sp,
+                letterSpacing = (-1.12).sp,
+            ),
+        headlineMedium =
+            TextStyle(
+                fontFamily = ManropeFamily,
+                fontWeight = FontWeight.Bold,
+                fontSize = 28.sp,
+            ),
+        titleLarge =
+            TextStyle(
+                fontFamily = JakartaFamily,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 22.sp,
+            ),
+        bodyLarge =
+            TextStyle(
+                fontFamily = JakartaFamily,
+                fontWeight = FontWeight.Normal,
+                fontSize = 16.sp,
+                lineHeight = 24.sp,
+                letterSpacing = 0.5.sp,
+            ),
     )
-)

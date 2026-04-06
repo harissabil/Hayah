@@ -41,39 +41,42 @@ fun PeriodSelector(
     // 2. Get the current density to convert pixels to dp
     val density = LocalDensity.current
 
-    val label = when (selectedPeriod) {
-        Period.THIS_WEEK -> "This Week"
-        Period.THIS_MONTH -> "This Month"
-        Period.ALL_TIME -> "All Time"
-    }
+    val label =
+        when (selectedPeriod) {
+            Period.THIS_WEEK -> "This Week"
+            Period.THIS_MONTH -> "This Month"
+            Period.ALL_TIME -> "All Time"
+        }
 
     Box(modifier = modifier) {
         Surface(
             shape = CircleShape,
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier
-                .clickable { expanded = true }
-                // 3. Measure the width of the Surface when it's positioned
-                .onGloballyPositioned { coordinates ->
-                    dropDownWidth = with(density) { coordinates.size.width.toDp() }
-                }
+            modifier =
+                Modifier
+                    .clickable { expanded = true }
+                    // 3. Measure the width of the Surface when it's positioned
+                    .onGloballyPositioned { coordinates ->
+                        dropDownWidth = with(density) { coordinates.size.width.toDp() }
+                    },
         ) {
             Row(
-                modifier = Modifier
-                    .padding(horizontal = 28.dp, vertical = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier =
+                    Modifier
+                        .padding(horizontal = 28.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = label,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "Change period",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -85,24 +88,25 @@ fun PeriodSelector(
             onDismissRequest = { expanded = false },
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
             shape = MaterialTheme.shapes.medium,
-            shadowElevation = 4.dp
+            shadowElevation = 4.dp,
         ) {
             Period.entries.forEach { period ->
                 DropdownMenuItem(
                     text = {
                         Text(
-                            text = when (period) {
-                                Period.THIS_WEEK -> "This Week"
-                                Period.THIS_MONTH -> "This Month"
-                                Period.ALL_TIME -> "All Time"
-                            },
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text =
+                                when (period) {
+                                    Period.THIS_WEEK -> "This Week"
+                                    Period.THIS_MONTH -> "This Month"
+                                    Period.ALL_TIME -> "All Time"
+                                },
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     },
                     onClick = {
                         onPeriodSelected(period)
                         expanded = false
-                    }
+                    },
                 )
             }
         }

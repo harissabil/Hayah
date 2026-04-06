@@ -17,7 +17,6 @@ import com.google.gson.Gson
  * Model: gemini-3.1-flash-lite-preview (using the latest available model name)
  */
 class VerseRecommendationService {
-
     companion object {
         private const val TAG = "VerseRecommendation"
     }
@@ -27,52 +26,61 @@ class VerseRecommendationService {
     // ── Model for verse recommendations ───────────
 
     private val verseModel by lazy {
-        val schema = Schema.obj(
-            mapOf(
-                "keyword" to Schema.string(),
-                "verses" to Schema.array(Schema.string()),
+        val schema =
+            Schema.obj(
+                mapOf(
+                    "keyword" to Schema.string(),
+                    "verses" to Schema.array(Schema.string()),
+                ),
             )
-        )
 
-        Firebase.ai(backend = GenerativeBackend.googleAI())
+        Firebase
+            .ai(backend = GenerativeBackend.googleAI())
             .generativeModel(
                 modelName = "gemini-3.1-flash-lite-preview",
-                generationConfig = generationConfig {
-                    responseMimeType = "application/json"
-                    responseSchema = schema
-                },
-                systemInstruction = content {
-                    text(VERSE_SYSTEM_PROMPT)
-                },
+                generationConfig =
+                    generationConfig {
+                        responseMimeType = "application/json"
+                        responseSchema = schema
+                    },
+                systemInstruction =
+                    content {
+                        text(VERSE_SYSTEM_PROMPT)
+                    },
             )
     }
 
     // ── Model for reflections ─────────────────────
 
     private val reflectionModel by lazy {
-        val schema = Schema.obj(
-            mapOf(
-                "reflections" to Schema.array(
-                    Schema.obj(
-                        mapOf(
-                            "verse_key" to Schema.string(),
-                            "reflection" to Schema.string(),
-                        )
-                    )
+        val schema =
+            Schema.obj(
+                mapOf(
+                    "reflections" to
+                        Schema.array(
+                            Schema.obj(
+                                mapOf(
+                                    "verse_key" to Schema.string(),
+                                    "reflection" to Schema.string(),
+                                ),
+                            ),
+                        ),
                 ),
             )
-        )
 
-        Firebase.ai(backend = GenerativeBackend.googleAI())
+        Firebase
+            .ai(backend = GenerativeBackend.googleAI())
             .generativeModel(
                 modelName = "gemini-3.1-flash-lite-preview",
-                generationConfig = generationConfig {
-                    responseMimeType = "application/json"
-                    responseSchema = schema
-                },
-                systemInstruction = content {
-                    text(REFLECTION_SYSTEM_PROMPT)
-                },
+                generationConfig =
+                    generationConfig {
+                        responseMimeType = "application/json"
+                        responseSchema = schema
+                    },
+                systemInstruction =
+                    content {
+                        text(REFLECTION_SYSTEM_PROMPT)
+                    },
             )
     }
 
@@ -83,11 +91,12 @@ class VerseRecommendationService {
      */
     suspend fun recommendVerses(keyword: String): List<String> {
         return try {
-            val response = verseModel.generateContent(
-                "Find 5 Quranic verses most relevant to the keyword or theme: \"$keyword\". " +
-                "Return only verses that genuinely exist in the Quran. " +
-                "Format each verse as chapter:verse (e.g. 2:255)."
-            )
+            val response =
+                verseModel.generateContent(
+                    "Find 5 Quranic verses most relevant to the keyword or theme: \"$keyword\". " +
+                        "Return only verses that genuinely exist in the Quran. " +
+                        "Format each verse as chapter:verse (e.g. 2:255).",
+                )
 
             val json = response.text ?: return emptyList()
             Log.d(TAG, "Verse recommendation response: $json")
@@ -108,18 +117,20 @@ class VerseRecommendationService {
         versesWithTranslations: List<Pair<String, String>>, // (verseKey, translationText)
     ): Map<String, String> {
         return try {
-            val versesBlock = versesWithTranslations.joinToString("\n") { (key, translation) ->
-                "- Verse $key: \"$translation\""
-            }
+            val versesBlock =
+                versesWithTranslations.joinToString("\n") { (key, translation) ->
+                    "- Verse $key: \"$translation\""
+                }
 
-            val prompt = """
+            val prompt =
+                """
                 The keyword/theme is: "$keyword"
                 
                 For each of the following Quranic verses, write a brief, thoughtful Islamic reflection 
                 (2-3 sentences) connecting the verse to the theme of "$keyword" in daily life:
                 
                 $versesBlock
-            """.trimIndent()
+                """.trimIndent()
 
             val response = reflectionModel.generateContent(prompt)
             val json = response.text ?: return emptyMap()

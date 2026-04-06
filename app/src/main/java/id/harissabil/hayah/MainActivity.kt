@@ -20,7 +20,6 @@ import id.harissabil.hayah.ui.theme.HayahTheme
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {
-
     private val authViewModel: AuthViewModel by viewModel()
     private val settingsViewModel: SettingsViewModel by viewModel()
 
@@ -29,31 +28,33 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         // Register the Activity Result launcher for the OAuth browser flow.
-        val authLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) { result ->
-            val data = result.data
-            if (data != null) {
-                authViewModel.handleAuthResponse(data)
+        val authLauncher =
+            registerForActivityResult(
+                ActivityResultContracts.StartActivityForResult(),
+            ) { result ->
+                val data = result.data
+                if (data != null) {
+                    authViewModel.handleAuthResponse(data)
+                }
             }
-        }
 
         setContent {
             val authUiState by authViewModel.authUiState.collectAsStateWithLifecycle()
             val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
-            val isDarkTheme = when (settingsUiState.appTheme) {
-                AppTheme.DARK -> true
-                AppTheme.LIGHT -> false
-                AppTheme.SYSTEM -> isSystemInDarkTheme()
-            }
+            val isDarkTheme =
+                when (settingsUiState.appTheme) {
+                    AppTheme.DARK -> true
+                    AppTheme.LIGHT -> false
+                    AppTheme.SYSTEM -> isSystemInDarkTheme()
+                }
 
             HayahTheme(
-                darkTheme = isDarkTheme
+                darkTheme = isDarkTheme,
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     HayahNavGraph(
                         authUiState = authUiState,

@@ -16,6 +16,8 @@ import id.harissabil.hayah.data.db.entity.ReadHistoryEntity
 )
 abstract class HayahDatabase : RoomDatabase() {
     abstract fun keywordCacheDao(): KeywordCacheDao
+
     abstract fun journalEntryDao(): JournalEntryDao
+
     abstract fun readHistoryDao(): ReadHistoryDao
 }

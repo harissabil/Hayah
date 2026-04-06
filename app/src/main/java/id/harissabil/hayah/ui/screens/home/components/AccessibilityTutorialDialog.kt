@@ -42,9 +42,7 @@ import androidx.core.net.toUri
 import id.harissabil.hayah.R
 
 @Composable
-fun AccessibilityTutorialDialog(
-    onClose: () -> Unit,
-) {
+fun AccessibilityTutorialDialog(onClose: () -> Unit) {
     val context = LocalContext.current
     val videoRef = remember { mutableStateOf<VideoView?>(null) }
 
@@ -52,50 +50,54 @@ fun AccessibilityTutorialDialog(
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 2.dp
+            tonalElevation = 2.dp,
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    // Apply padding only to top and bottom so the video can span edge-to-edge
-                    .padding(vertical = 24.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState())
+                        // Apply padding only to top and bottom so the video can span edge-to-edge
+                        .padding(vertical = 24.dp),
             ) {
                 Text(
                     text = "Enable Accessibility",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 24.dp) // Added padding here
+                    modifier = Modifier.padding(horizontal = 24.dp), // Added padding here
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // The video box now has no horizontal padding, spanning full width
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(4f / 3f)
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(4f / 3f)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                 ) {
                     AndroidView(
                         modifier = Modifier.fillMaxSize(),
                         factory = { ctx ->
-                            VideoView(ctx).apply {
-                                // Force the native VideoView to fully expand to the Compose Box bounds
-                                layoutParams = FrameLayout.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.MATCH_PARENT
-                                )
-                                val uri =
-                                    "android.resource://${ctx.packageName}/${R.raw.vid_accessibility_service_tutorial}".toUri()
-                                setVideoURI(uri)
-                                setOnPreparedListener { mediaPlayer ->
-                                    mediaPlayer.isLooping = true
-                                    start()
-                                }
-                            }.also { videoRef.value = it }
-                        }
+                            VideoView(ctx)
+                                .apply {
+                                    // Force the native VideoView to fully expand to the Compose Box bounds
+                                    layoutParams =
+                                        FrameLayout.LayoutParams(
+                                            ViewGroup.LayoutParams.MATCH_PARENT,
+                                            ViewGroup.LayoutParams.MATCH_PARENT,
+                                        )
+                                    val uri =
+                                        "android.resource://${ctx.packageName}/${R.raw.vid_accessibility_service_tutorial}".toUri()
+                                    setVideoURI(uri)
+                                    setOnPreparedListener { mediaPlayer ->
+                                        mediaPlayer.isLooping = true
+                                        start()
+                                    }
+                                }.also { videoRef.value = it }
+                        },
                     )
                 }
 
@@ -106,19 +108,20 @@ fun AccessibilityTutorialDialog(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = 24.dp) // Added padding here
+                    modifier = Modifier.padding(horizontal = 24.dp), // Added padding here
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "1. Open Accessibility Settings\n" +
+                    text =
+                        "1. Open Accessibility Settings\n" +
                             "2. Scroll down and select Hayah\n" +
                             "3. Turn on the service\n" +
                             "4. Allow monitor and control device",
                     style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 24.dp) // Added padding here
+                    modifier = Modifier.padding(horizontal = 24.dp), // Added padding here
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -128,16 +131,18 @@ fun AccessibilityTutorialDialog(
                     style = MaterialTheme.typography.bodySmall,
                     fontStyle = FontStyle.Italic,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                    modifier = Modifier.padding(horizontal = 24.dp) // Added padding here
+                    modifier = Modifier.padding(horizontal = 24.dp), // Added padding here
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp), // Added padding here
-                    horizontalArrangement = Arrangement.End
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 24.dp),
+                    // Added padding here
+                    horizontalArrangement = Arrangement.End,
                 ) {
                     OutlinedButton(onClick = onClose) {
                         Text("Close")
@@ -150,7 +155,7 @@ fun AccessibilityTutorialDialog(
                             context.startActivity(
                                 Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
                                     flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                }
+                                },
                             )
                             onClose()
                         },
@@ -158,7 +163,7 @@ fun AccessibilityTutorialDialog(
                         Text(
                             text = "Enable",
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.White,
                         )
                     }
                 }

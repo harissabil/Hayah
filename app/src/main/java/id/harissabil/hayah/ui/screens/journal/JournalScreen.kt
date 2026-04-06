@@ -28,30 +28,32 @@ fun JournalScreen(
 
     Scaffold { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
         ) {
             JournalSearchBar(
                 query = uiState.searchQuery,
-                onQueryChange = viewModel::onSearchQueryChanged
+                onQueryChange = viewModel::onSearchQueryChanged,
             )
 
             if (uiState.filteredEntries.isEmpty()) {
                 EmptyJournalState(
                     isSearching = uiState.searchQuery.isNotEmpty(),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             } else {
                 LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
                 ) {
                     item { Spacer(modifier = Modifier.height(8.dp)) }
                     items(
                         items = uiState.filteredEntries,
-                        key = { UUID.randomUUID() }
+                        key = { UUID.randomUUID() },
                     ) { entry ->
                         JournalEntryCard(
                             entry = entry,
@@ -59,9 +61,9 @@ fun JournalScreen(
                                 onNavigateToQuranReader(
                                     entry.entryId,
                                     entry.pageNumber,
-                                    entry.verseKey
+                                    entry.verseKey,
                                 )
-                            }
+                            },
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }

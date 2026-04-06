@@ -16,16 +16,25 @@ sealed class Screen(
     val iconOutlined: ImageVector? = null,
 ) {
     object Onboarding : Screen("onboarding")
+
     object Home : Screen("home", "Home", Icons.Filled.Home, Icons.Outlined.Home)
+
     object Journal : Screen(
-        "journal", "Journal",
+        "journal",
+        "Journal",
         Icons.AutoMirrored.Filled.MenuBook,
-        Icons.AutoMirrored.Outlined.MenuBook
+        Icons.AutoMirrored.Outlined.MenuBook,
     )
+
     object Settings : Screen("settings", "Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
+
     object QuranReading : Screen("quran_reading/{pageNumber}?entryId={entryId}&highlightedVerseKey={highlightedVerseKey}") {
-        fun createRoute(pageNumber: Int, entryId: Long = -1L, highlightedVerseKey: String? = null): String {
-            return buildString {
+        fun createRoute(
+            pageNumber: Int,
+            entryId: Long = -1L,
+            highlightedVerseKey: String? = null,
+        ): String =
+            buildString {
                 append("quran_reading/$pageNumber")
 
                 val queryParams = mutableListOf<String>()
@@ -41,6 +50,5 @@ sealed class Screen(
                     append("?${queryParams.joinToString("&")}")
                 }
             }
-        }
     }
 }

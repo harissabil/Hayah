@@ -17,8 +17,9 @@ import net.openid.appauth.AuthState
  */
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "hayah_auth")
 
-class AuthStateManager(private val context: Context) {
-
+class AuthStateManager(
+    private val context: Context,
+) {
     private val gson = Gson()
 
     companion object {
@@ -29,9 +30,10 @@ class AuthStateManager(private val context: Context) {
     // ── AuthState ──────────────────────────────────
 
     suspend fun getAuthState(): AuthState {
-        val json = context.dataStore.data
-            .map { prefs -> prefs[KEY_AUTH_STATE] }
-            .first()
+        val json =
+            context.dataStore.data
+                .map { prefs -> prefs[KEY_AUTH_STATE] }
+                .first()
         return if (json != null) {
             AuthState.jsonDeserialize(json)
         } else {
@@ -55,9 +57,10 @@ class AuthStateManager(private val context: Context) {
     // ── User Profile ───────────────────────────────
 
     suspend fun getUserProfile(): UserProfileResponse? {
-        val json = context.dataStore.data
-            .map { prefs -> prefs[KEY_USER_PROFILE] }
-            .first()
+        val json =
+            context.dataStore.data
+                .map { prefs -> prefs[KEY_USER_PROFILE] }
+                .first()
         return json?.let {
             try {
                 gson.fromJson(it, UserProfileResponse::class.java)

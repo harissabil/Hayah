@@ -14,13 +14,10 @@ import androidx.room.PrimaryKey
 data class KeywordCacheEntity(
     @PrimaryKey
     val keyword: String,
-
     @ColumnInfo(name = "verses_json")
     val versesJson: String,
-
     @ColumnInfo(name = "last_shown_index")
     val lastShownIndex: Int = 0,
-
     @ColumnInfo(name = "last_shown_time")
     val lastShownTime: Long = 0L, // epoch millis
 )

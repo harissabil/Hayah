@@ -15,18 +15,21 @@ data class JournalUiState(
     val isLoading: Boolean = true,
 ) {
     val filteredEntries: List<JournalEntry>
-        get() = if (searchQuery.isBlank()) allEntries
-        else allEntries.filter {
-            it.surahVerse.contains(searchQuery, ignoreCase = true) ||
-                    it.reflection.contains(searchQuery, ignoreCase = true) ||
-                    it.tag.contains(searchQuery, ignoreCase = true)
-        }
+        get() =
+            if (searchQuery.isBlank()) {
+                allEntries
+            } else {
+                allEntries.filter {
+                    it.surahVerse.contains(searchQuery, ignoreCase = true) ||
+                        it.reflection.contains(searchQuery, ignoreCase = true) ||
+                        it.tag.contains(searchQuery, ignoreCase = true)
+                }
+            }
 }
 
 class JournalViewModel(
     private val journalEntryDao: JournalEntryDao,
 ) : ViewModel() {
-
     private val _uiState = MutableStateFlow(JournalUiState())
     val uiState: StateFlow<JournalUiState> = _uiState.asStateFlow()
 
@@ -37,19 +40,20 @@ class JournalViewModel(
     private fun observeJournalEntries() {
         viewModelScope.launch {
             journalEntryDao.getAllEntries().collect { entities ->
-                val entries = entities.map { entity ->
-                    JournalEntry(
-                        entryId = entity.id,
-                        surahVerse = entity.surahVerse,
-                        verseKey = entity.verseKey,
-                        tag = entity.tag,
-                        tagStyle = TagStyle.entries.getOrElse(entity.tagStyleOrdinal) { TagStyle.PRIMARY },
-                        reflection = entity.reflection,
-                        date = formatTimestamp(entity.timestamp),
-                        isUnread = entity.isUnread,
-                        pageNumber = entity.pageNumber
-                    )
-                }
+                val entries =
+                    entities.map { entity ->
+                        JournalEntry(
+                            entryId = entity.id,
+                            surahVerse = entity.surahVerse,
+                            verseKey = entity.verseKey,
+                            tag = entity.tag,
+                            tagStyle = TagStyle.entries.getOrElse(entity.tagStyleOrdinal) { TagStyle.PRIMARY },
+                            reflection = entity.reflection,
+                            date = formatTimestamp(entity.timestamp),
+                            isUnread = entity.isUnread,
+                            pageNumber = entity.pageNumber,
+                        )
+                    }
                 _uiState.update {
                     it.copy(allEntries = entries, isLoading = false)
                 }
