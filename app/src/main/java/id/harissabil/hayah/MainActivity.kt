@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-        setContent {// test
+        setContent {
             val authUiState by authViewModel.authUiState.collectAsStateWithLifecycle()
             val settingsUiState by settingsViewModel.uiState.collectAsStateWithLifecycle()
 
