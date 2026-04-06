@@ -1,21 +1,42 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ---------------------------------
+# Release shrinking + obfuscation
+# ---------------------------------
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Keep metadata required by reflection and useful crash stack traces.
+-keepattributes Signature,*Annotation*,InnerClasses,EnclosingMethod,SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ---------------------------------
+# Android entry points (manifest + framework)
+# ---------------------------------
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-keep class id.harissabil.hayah.HayahApplication { *; }
+-keep class id.harissabil.hayah.MainActivity { *; }
+-keep class id.harissabil.hayah.service.ActivityTransitionReceiver { *; }
+-keep class id.harissabil.hayah.service.OnBootReceiver { *; }
+-keep class id.harissabil.hayah.service.HayahAccessibilityService { *; }
+
+# Keep all app service-package classes (orchestrators/helpers/services/receivers).
+-keep class id.harissabil.hayah.service.** { *; }
+
+# ---------------------------------
+# Gson reflection safety
+# ---------------------------------
+
+# Preserve generic type metadata for TypeToken parsing.
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+
+# Keep classes/fields used via Gson reflection in network/cache payloads.
+-keep class id.harissabil.hayah.data.model.** { *; }
+-keep class id.harissabil.hayah.ui.screens.settings.ReciterOption { *; }
+
+# Internal Firebase AI response models parsed with Gson in VerseRecommendationService.
+-keep class id.harissabil.hayah.data.ai.VerseRecommendationService$VerseRecommendation { *; }
+-keep class id.harissabil.hayah.data.ai.VerseRecommendationService$ReflectionResult { *; }
+-keep class id.harissabil.hayah.data.ai.VerseRecommendationService$ReflectionItem { *; }
+
+# Preserve fields annotated with @SerializedName when obfuscating other classes.
+-keepclassmembers,allowobfuscation class * {
+	@com.google.gson.annotations.SerializedName <fields>;
+}
