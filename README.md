@@ -15,7 +15,7 @@ Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic 
     <td><img src="screenshots/home.jpeg" width="200" alt="Home"/></td>
     <td><img src="screenshots/notification.jpeg" width="200" alt="Detection Notification"/></td>
   </tr>
-` <tr>
+  <tr>
     <td align="center">Journal</td>
     <td align="center">Reading</td>
     <td align="center">Settings</td>
