@@ -8,12 +8,12 @@ Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic 
    <tr>
     <td align="center">Onboarding</td>
     <td align="center">Home</td>
-    <td align="center">Detection Notification</td>
+    <td align="center">Notification</td>
   </tr>
   <tr>
-    <td><img src="screenshots/onboarding.jpeg" width="200" alt="Onboarding"/></td>
-    <td><img src="screenshots/home.jpeg" width="200" alt="Home"/></td>
-    <td><img src="screenshots/notification.jpeg" width="200" alt="Detection Notification"/></td>
+    <td><img src="screenshots/onboarding.jpeg" alt="Onboarding"/></td>
+    <td><img src="screenshots/home.jpeg" alt="Home"/></td>
+    <td><img src="screenshots/notification.jpeg" alt="Notification"/></td>
   </tr>
   <tr>
     <td align="center">Journal</td>
@@ -21,9 +21,9 @@ Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic 
     <td align="center">Settings</td>
   </tr>
   <tr>
-    <td><img src="screenshots/journal.jpeg" width="200" alt="Journal"/></td>
-    <td><img src="screenshots/reading.jpeg" width="200" alt="Reading"/></td>
-    <td><img src="screenshots/settings.jpeg" width="200" alt="Settings"/></td>
+    <td><img src="screenshots/journal.jpeg" alt="Journal"/></td>
+    <td><img src="screenshots/reading.jpeg" alt="Reading"/></td>
+    <td><img src="screenshots/settings.jpeg" alt="Settings"/></td>
   </tr>
 </table>
 
