@@ -28,27 +28,29 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun EmptyJournalState(
     isSearching: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
+        modifier =
+            modifier
+                .fillMaxSize()
+                .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier
-                .size(140.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(140.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = if (isSearching) Icons.Outlined.SearchOff else Icons.Outlined.AutoStories,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
             )
         }
 
@@ -59,22 +61,23 @@ fun EmptyJournalState(
             style = MaterialTheme.typography.titleLarge.copy(fontSize = 22.sp),
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
 
         Spacer(modifier = Modifier.height(12.dp))
 
         Text(
-            text = if (isSearching) {
-                "Try adjusting your search keywords to find what you're looking for."
-            } else {
-                "Verses you reflect upon will organically appear here, building your spiritual sanctuary over time."
-            },
+            text =
+                if (isSearching) {
+                    "Try adjusting your search keywords to find what you're looking for."
+                } else {
+                    "Verses you reflect upon will organically appear here, building your spiritual sanctuary over time."
+                },
             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
         )
-        
+
         Spacer(modifier = Modifier.height(40.dp))
     }
 }

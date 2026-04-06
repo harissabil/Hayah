@@ -25,24 +25,26 @@ fun AuraBlobs(modifier: Modifier = Modifier) {
     Canvas(modifier = modifier.fillMaxSize()) {
         // Top-left primary blob
         drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(primaryAura, transparent),
-                center = Offset(x = 0f, y = 0f),
-                radius = size.width * 0.65f
-            ),
+            brush =
+                Brush.radialGradient(
+                    colors = listOf(primaryAura, transparent),
+                    center = Offset(x = 0f, y = 0f),
+                    radius = size.width * 0.65f,
+                ),
             radius = size.width * 0.65f,
-            center = Offset(x = 0f, y = 0f)
+            center = Offset(x = 0f, y = 0f),
         )
 
         // Bottom-right tertiary blob
         drawCircle(
-            brush = Brush.radialGradient(
-                colors = listOf(tertiaryAura, transparentT),
-                center = Offset(x = size.width, y = size.height),
-                radius = size.width * 0.55f
-            ),
+            brush =
+                Brush.radialGradient(
+                    colors = listOf(tertiaryAura, transparentT),
+                    center = Offset(x = size.width, y = size.height),
+                    radius = size.width * 0.55f,
+                ),
             radius = size.width * 0.55f,
-            center = Offset(x = size.width, y = size.height)
+            center = Offset(x = size.width, y = size.height),
         )
     }
 }

@@ -52,7 +52,6 @@ class SettingsViewModel(
     private val authRepository: AuthRepository,
     private val quranApiService: QuranApiService,
 ) : ViewModel() {
-
     companion object {
         val KEY_PLAY_AUDIO = booleanPreferencesKey("play_audio_instantly")
         val KEY_MAX_REMINDERS = floatPreferencesKey("max_reminders")
@@ -84,9 +83,10 @@ class SettingsViewModel(
                         maxReminders = prefs[KEY_MAX_REMINDERS] ?: 5f,
                         quietDuration = prefs[KEY_QUIET_DURATION] ?: 5f,
                         detectionThreshold = prefs[KEY_DETECTION_THRESHOLD] ?: 3f,
-                        appTheme = prefs[KEY_APP_THEME]?.let { themeStr ->
-                            AppTheme.entries.find { it.name == themeStr }
-                        } ?: AppTheme.SYSTEM,
+                        appTheme =
+                            prefs[KEY_APP_THEME]?.let { themeStr ->
+                                AppTheme.entries.find { it.name == themeStr }
+                            } ?: AppTheme.SYSTEM,
                         reciterId = prefs[KEY_RECITER_ID] ?: 7,
                         reciterName = prefs[KEY_RECITER_NAME] ?: "Mishary Rashid Alafasy",
                         isAccessibilityEnabled = isAccessibilityServiceEnabled(),
@@ -144,7 +144,10 @@ class SettingsViewModel(
         _uiState.update { it.copy(isReciterDialogOpen = false, reciterError = null) }
     }
 
-    fun onReciterSelected(id: Int, name: String) {
+    fun onReciterSelected(
+        id: Int,
+        name: String,
+    ) {
         _uiState.update {
             it.copy(
                 reciterId = id,
@@ -197,17 +200,19 @@ class SettingsViewModel(
             }
 
             try {
-                val response = quranApiService.getRecitations(
-                    accessToken = accessToken,
-                    clientId = QuranOAuthConfig.clientId,
-                    language = "en",
-                )
+                val response =
+                    quranApiService.getRecitations(
+                        accessToken = accessToken,
+                        clientId = QuranOAuthConfig.clientId,
+                        language = "en",
+                    )
 
-                val options = response.recitations
-                    .orEmpty()
-                    .mapNotNull(::toReciterOption)
-                    .distinctBy { it.id }
-                    .sortedBy { it.name.lowercase() }
+                val options =
+                    response.recitations
+                        .orEmpty()
+                        .mapNotNull(::toReciterOption)
+                        .distinctBy { it.id }
+                        .sortedBy { it.name.lowercase() }
 
                 context.hayahSettingsDataStore.edit {
                     it[KEY_RECITERS_CACHE_JSON] = gson.toJson(options)
@@ -240,23 +245,23 @@ class SettingsViewModel(
         return ReciterOption(id = id, name = display)
     }
 
-    private fun parseReciterOptions(json: String): List<ReciterOption> {
-        return try {
+    private fun parseReciterOptions(json: String): List<ReciterOption> =
+        try {
             val type = object : TypeToken<List<ReciterOption>>() {}.type
             gson.fromJson<List<ReciterOption>>(json, type).orEmpty()
         } catch (_: Exception) {
             emptyList()
         }
-    }
 
     private fun isAccessibilityServiceEnabled(): Boolean {
         val serviceName =
             "${context.packageName}/${HayahAccessibilityService::class.java.canonicalName}"
         return try {
-            val enabledServices = Settings.Secure.getString(
-                context.contentResolver,
-                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-            )
+            val enabledServices =
+                Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+                )
             enabledServices?.contains(serviceName) == true
         } catch (_: Exception) {
             false

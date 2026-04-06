@@ -30,33 +30,36 @@ fun InstantReflectionButton(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
 ) {
-    val gradientBrush = Brush.linearGradient(
-        colors = listOf(
-            MaterialTheme.colorScheme.secondary,
-            MaterialTheme.colorScheme.primaryContainer,
+    val gradientBrush =
+        Brush.linearGradient(
+            colors =
+                listOf(
+                    MaterialTheme.colorScheme.secondary,
+                    MaterialTheme.colorScheme.primaryContainer,
+                ),
         )
-    )
     Box(
-        modifier = modifier
-            .clip(RoundedCornerShape(50.dp))
-            .background(gradientBrush)
-            .clickable(enabled = !isLoading) { onClick() }
-            .padding(horizontal = 36.dp, vertical = 18.dp),
-        contentAlignment = Alignment.Center
+        modifier =
+            modifier
+                .clip(RoundedCornerShape(50.dp))
+                .background(gradientBrush)
+                .clickable(enabled = !isLoading) { onClick() }
+                .padding(horizontal = 36.dp, vertical = 18.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (isLoading) {
                 CircularProgressIndicator(
                     color = Color.White,
                     modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
                 )
             } else {
                 Icon(
                     imageVector = Icons.Filled.AutoAwesome,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
@@ -64,7 +67,7 @@ fun InstantReflectionButton(
                 text = if (isLoading) "Reflecting..." else "Instant Reflection",
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = Color.White,
             )
         }
     }

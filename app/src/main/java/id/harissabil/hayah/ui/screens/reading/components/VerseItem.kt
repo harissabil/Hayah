@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -27,40 +28,48 @@ import id.harissabil.hayah.ui.theme.ManropeFamily
 import id.harissabil.hayah.ui.theme.UthmaniFamily
 
 @Composable
-fun VerseItem(verse: VerseDetail, isHighlighted: Boolean) {
-    val arabicText = verse.textUthmani
-        ?.replace('\u06DF', '\u0652')
-        ?: ""
+fun VerseItem(
+    verse: VerseDetail,
+    isHighlighted: Boolean,
+) {
+    val arabicText =
+        verse.textUthmani
+            ?.replace('\u06DF', '\u0652')
+            ?: ""
 
     val verseNumber = verse.verseNumber ?: 0
     val rawTranslation = verse.translations?.firstOrNull()?.text ?: ""
-    val translation = rawTranslation
-        .replace(Regex("<sup[^>]*>.*?</sup>"), "")
-        .replace(Regex("<[^>]*>"), "")
+    val translation =
+        rawTranslation
+            .replace(Regex("<sup[^>]*>.*?</sup>"), "")
+            .replace(Regex("<[^>]*>"), "")
 
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(
-                if (isHighlighted) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
-                else MaterialTheme.colorScheme.surfaceContainerLowest
-            )
-            .padding(
-                top = if (isHighlighted) 48.dp else 24.dp,
-                bottom = if (isHighlighted) 40.dp else 24.dp,
-                start = 16.dp,
-                end = 16.dp
-            )
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    if (isHighlighted) {
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerLowest
+                    },
+                ).padding(
+                    top = if (isHighlighted) 48.dp else 24.dp,
+                    bottom = if (isHighlighted) 40.dp else 24.dp,
+                    start = 16.dp,
+                    end = 16.dp,
+                ),
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 if (isHighlighted) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -69,7 +78,7 @@ fun VerseItem(verse: VerseDetail, isHighlighted: Boolean) {
                             fontFamily = ManropeFamily,
                             fontWeight = FontWeight.ExtraBold,
                             fontSize = 24.sp,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
                         )
                     }
                 } else {
@@ -78,7 +87,7 @@ fun VerseItem(verse: VerseDetail, isHighlighted: Boolean) {
                         fontFamily = ManropeFamily,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.5f)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                     )
                 }
 
@@ -91,7 +100,7 @@ fun VerseItem(verse: VerseDetail, isHighlighted: Boolean) {
                     lineHeight = 64.sp,
                     color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Right,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -104,8 +113,8 @@ fun VerseItem(verse: VerseDetail, isHighlighted: Boolean) {
                 fontSize = if (isHighlighted) 18.sp else 16.sp,
                 color = if (isHighlighted) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(start = 32.dp),
-                fontStyle = if (isHighlighted) androidx.compose.ui.text.font.FontStyle.Italic else androidx.compose.ui.text.font.FontStyle.Normal,
-                lineHeight = 28.sp
+                fontStyle = if (isHighlighted) FontStyle.Italic else FontStyle.Normal,
+                lineHeight = 28.sp,
             )
         }
     }

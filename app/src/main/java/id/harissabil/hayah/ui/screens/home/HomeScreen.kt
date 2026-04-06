@@ -68,28 +68,28 @@ import org.koin.compose.koinInject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(
-    viewModel: HomeViewModel = koinViewModel(),
-) {
+fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val showAccessibilityTutorialDialog = remember { mutableStateOf(false) }
     val hasEvaluatedAccessibilityTutorial = remember { mutableStateOf(false) }
-    val keyAccessibilityTutorialShown = remember {
-        booleanPreferencesKey("accessibility_tutorial_shown_once")
-    }
+    val keyAccessibilityTutorialShown =
+        remember {
+            booleanPreferencesKey("accessibility_tutorial_shown_once")
+        }
 
     val activityRecognitionManager: ActivityRecognitionManager = koinInject()
 
     fun isAccessibilityServiceEnabled(): Boolean {
         val serviceName =
             "${context.packageName}/${HayahAccessibilityService::class.java.canonicalName}"
-        val enabledServices = Settings.Secure.getString(
-            context.contentResolver,
-            Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-        )
+        val enabledServices =
+            Settings.Secure.getString(
+                context.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+            )
         return enabledServices?.contains(serviceName) == true
     }
 
@@ -111,17 +111,18 @@ fun HomeScreen(
     }
 
     // 1. Set up the Compose Permission Launcher
-    val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestMultiplePermissions()
-    ) { results ->
-        val activityGranted = results[Manifest.permission.ACTIVITY_RECOGNITION] ?: false
-        if (activityGranted || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            activityRecognitionManager.startTracking()
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.RequestMultiplePermissions(),
+        ) { results ->
+            val activityGranted = results[Manifest.permission.ACTIVITY_RECOGNITION] ?: false
+            if (activityGranted || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                activityRecognitionManager.startTracking()
+            }
+            coroutineScope.launch {
+                maybeShowAccessibilityTutorialOnce()
+            }
         }
-        coroutineScope.launch {
-            maybeShowAccessibilityTutorialOnce()
-        }
-    }
 
     // 2. Trigger the permission check safely when the screen loads
     LaunchedEffect(Unit) {
@@ -157,10 +158,11 @@ fun HomeScreen(
     LaunchedEffect(uiState.instantReflectionError) {
         val error = uiState.instantReflectionError
         if (error != null) {
-            val result = snackbarHostState.showSnackbar(
-                message = error,
-                actionLabel = "Retry"
-            )
+            val result =
+                snackbarHostState.showSnackbar(
+                    message = error,
+                    actionLabel = "Retry",
+                )
             if (result == SnackbarResult.ActionPerformed) {
                 viewModel.generateInstantReflection()
             } else {
@@ -174,13 +176,13 @@ fun HomeScreen(
             entry = uiState.newlyGeneratedEntry!!,
             onDismiss = {
                 viewModel.dismissNewlyGeneratedEntry()
-            }
+            },
         )
     }
 
     if (showAccessibilityTutorialDialog.value) {
         AccessibilityTutorialDialog(
-            onClose = { showAccessibilityTutorialDialog.value = false }
+            onClose = { showAccessibilityTutorialDialog.value = false },
         )
     }
 
@@ -191,19 +193,19 @@ fun HomeScreen(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
                     ) {
                         Image(
                             painter = painterResource(id = R.drawable.logo_hayah_transparent),
                             contentDescription = null,
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(36.dp),
                         )
                         Text(
                             text = "Hayah",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
-                            fontFamily = CairoFamily
+                            fontFamily = CairoFamily,
                         )
                     }
                 },
@@ -214,39 +216,44 @@ fun HomeScreen(
                             model = uiState.profilePhotoUrl,
                             contentDescription = "Profile",
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
+                            modifier =
+                                Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape),
                         )
                     } else {
                         Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier
+                                    .size(36.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Icon(
-                                Icons.Filled.Person, "Profile",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                Icons.Filled.Person,
+                                "Profile",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
                 },
                 modifier = Modifier.padding(end = 8.dp),
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                    ),
             )
         },
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface,
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -257,13 +264,13 @@ fun HomeScreen(
                     style = MaterialTheme.typography.headlineMedium.copy(fontSize = 34.sp),
                     fontWeight = FontWeight.ExtraBold,
                     color = MaterialTheme.colorScheme.onSurface,
-                    letterSpacing = (-0.5).sp
+                    letterSpacing = (-0.5).sp,
                 )
                 Text(
                     text = uiState.userName,
                     style = MaterialTheme.typography.headlineMedium.copy(fontSize = 22.sp),
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
 
@@ -278,7 +285,7 @@ fun HomeScreen(
 
             PeriodSelector(
                 selectedPeriod = uiState.selectedPeriod,
-                onPeriodSelected = { viewModel.onPeriodSelected(it) }
+                onPeriodSelected = { viewModel.onPeriodSelected(it) },
             )
 
             Spacer(modifier = Modifier.weight(1f))
@@ -287,7 +294,7 @@ fun HomeScreen(
                 isLoading = uiState.isInstantReflectionLoading,
                 onClick = {
                     viewModel.generateInstantReflection()
-                }
+                },
             )
 
             Spacer(modifier = Modifier.height(24.dp))

@@ -6,34 +6,37 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
     alias(libs.plugins.ksp)
     alias(libs.plugins.room)
+    alias(libs.plugins.ktlint)
 }
 
-val localProperties = Properties().apply {
-    val file = rootProject.file("local.properties")
-    if (file.exists()) {
-        file.inputStream().use(::load)
+val localProperties =
+    Properties().apply {
+        val file = rootProject.file("local.properties")
+        if (file.exists()) {
+            file.inputStream().use(::load)
+        }
     }
-}
 
-fun requiredConfig(key: String): String {
-    return localProperties.getProperty(key)
+fun requiredConfig(key: String): String =
+    localProperties.getProperty(key)
         ?: providers.gradleProperty(key).orNull
         ?: throw GradleException("Missing required config '$key'. Add it to local.properties or pass -P$key=...")
-}
 
 fun quoted(value: String): String {
-    val escaped = value
-        .replace("\\", "\\\\")
-        .replace("\"", "\\\"")
+    val escaped =
+        value
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"")
     return "\"$escaped\""
 }
 
 android {
     namespace = "id.harissabil.hayah"
     compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
+        version =
+            release(36) {
+                minorApiLevel = 1
+            }
     }
 
     defaultConfig {
@@ -41,7 +44,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = 1
-        versionName = "0.1.1"
+        versionName = "0.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -65,7 +68,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
     }
@@ -131,4 +134,15 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+}
+
+ktlint {
+    android.set(true)
+    ignoreFailures.set(false)
+
+    filter {
+        exclude("**/generated/**")
+        include("**/java/**")
+        include("**/kotlin/**")
+    }
 }

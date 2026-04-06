@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ReadHistoryDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entity: ReadHistoryEntity)
 

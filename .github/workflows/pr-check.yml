@@ -1,0 +1,47 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  ktlint:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Create dummy local.properties
+        run: |
+          cat <<EOF > local.properties
+          HAYAH_USE_PRODUCTION=false
+          HAYAH_CLIENT_ID_PROD=dummy
+          HAYAH_CLIENT_ID_TEST=dummy
+          HAYAH_AUTH_ENDPOINT_PROD=https://dummy
+          HAYAH_AUTH_ENDPOINT_TEST=https://dummy
+          HAYAH_TOKEN_PROXY_URL=https://dummy
+          HAYAH_REVOKE_PROXY_URL=https://dummy
+          HAYAH_API_BASE_PROD=https://dummy
+          HAYAH_API_BASE_TEST=https://dummy
+          HAYAH_REDIRECT_URI=dummy://callback
+          EOF
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run ktlint
+        run: ./gradlew ktlintCheck
+
+      - name: Upload ktlint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktlint-report
+          path: app/build/reports/ktlint/
+          retention-days: 1

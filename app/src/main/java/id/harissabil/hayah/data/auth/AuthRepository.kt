@@ -39,10 +39,11 @@ class AuthRepository(
         private const val TOKEN_REFRESH_BUFFER_MS = 30_000L
     }
 
-    private val serviceConfig = AuthorizationServiceConfiguration(
-        QuranOAuthConfig.authEndpoint,  // authorization endpoint → real Quran Foundation
-        QuranOAuthConfig.tokenEndpoint, // token endpoint → Cloudflare Worker proxy
-    )
+    private val serviceConfig =
+        AuthorizationServiceConfiguration(
+            QuranOAuthConfig.authEndpoint, // authorization endpoint → real Quran Foundation
+            QuranOAuthConfig.tokenEndpoint, // token endpoint → Cloudflare Worker proxy
+        )
 
     private val _isAuthenticated = MutableStateFlow(false)
     val isAuthenticated: StateFlow<Boolean> = _isAuthenticated.asStateFlow()
@@ -57,49 +58,51 @@ class AuthRepository(
     /**
      * Call once at app startup to restore auth state from DataStore.
      */
-    suspend fun initialize() = withContext(Dispatchers.IO) {
-        try {
-            val authState = authStateManager.getAuthState()
-            val hasTokens = authState.accessToken != null || authState.refreshToken != null
-            _isAuthenticated.value = hasTokens
+    suspend fun initialize() =
+        withContext(Dispatchers.IO) {
+            try {
+                val authState = authStateManager.getAuthState()
+                val hasTokens = authState.accessToken != null || authState.refreshToken != null
+                _isAuthenticated.value = hasTokens
 
-            if (hasTokens) {
-                // Try to load cached profile
-                _userProfile.value = authStateManager.getUserProfile()
+                if (hasTokens) {
+                    // Try to load cached profile
+                    _userProfile.value = authStateManager.getUserProfile()
 
-                // Proactively refresh when token is close to expiry.
-                if (shouldRefreshTokenSoon(authState)) {
-                    getValidAccessToken()
+                    // Proactively refresh when token is close to expiry.
+                    if (shouldRefreshTokenSoon(authState)) {
+                        getValidAccessToken()
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to initialize auth state", e)
+                _isAuthenticated.value = false
+            } finally {
+                _isLoading.value = false
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to initialize auth state", e)
-            _isAuthenticated.value = false
-        } finally {
-            _isLoading.value = false
         }
-    }
 
     /**
      * Returns a token that is safe to use for Quran.com API calls.
      * Refreshes proactively when expiry is within 30 seconds.
      */
-    suspend fun getValidAccessToken(): String? = withContext(Dispatchers.IO) {
-        val authState = authStateManager.getAuthState()
-        val currentToken = authState.accessToken ?: return@withContext null
+    suspend fun getValidAccessToken(): String? =
+        withContext(Dispatchers.IO) {
+            val authState = authStateManager.getAuthState()
+            val currentToken = authState.accessToken ?: return@withContext null
 
-        if (!shouldRefreshTokenSoon(authState)) {
-            return@withContext currentToken
+            if (!shouldRefreshTokenSoon(authState)) {
+                return@withContext currentToken
+            }
+
+            val refreshed = refreshTokens()
+            if (refreshed) {
+                return@withContext authStateManager.getAuthState().accessToken
+            }
+
+            // If refresh failed but token is still technically valid, use it as a fallback.
+            return@withContext if (isTokenStillUsable(authState)) currentToken else null
         }
-
-        val refreshed = refreshTokens()
-        if (refreshed) {
-            return@withContext authStateManager.getAuthState().accessToken
-        }
-
-        // If refresh failed but token is still technically valid, use it as a fallback.
-        return@withContext if (isTokenStillUsable(authState)) currentToken else null
-    }
 
     private fun shouldRefreshTokenSoon(state: net.openid.appauth.AuthState): Boolean {
         val expiresAt = state.accessTokenExpirationTime
@@ -122,14 +125,15 @@ class AuthRepository(
      * AppAuth automatically generates PKCE code_verifier/code_challenge.
      */
     fun buildAuthIntent(): Intent {
-        val request = AuthorizationRequest.Builder(
-            serviceConfig,
-            QuranOAuthConfig.clientId,
-            ResponseTypeValues.CODE,
-            QuranOAuthConfig.redirectUri,
-        )
-            .setScopes(QuranOAuthConfig.SCOPES)
-            .build()
+        val request =
+            AuthorizationRequest
+                .Builder(
+                    serviceConfig,
+                    QuranOAuthConfig.clientId,
+                    ResponseTypeValues.CODE,
+                    QuranOAuthConfig.redirectUri,
+                ).setScopes(QuranOAuthConfig.SCOPES)
+                .build()
 
         val authService = AuthorizationService(context)
         return authService.getAuthorizationRequestIntent(request)
@@ -141,29 +145,30 @@ class AuthRepository(
      * Processes the intent returned from the browser after the user logs in.
      * Exchanges the authorization code for tokens, then fetches the user profile.
      */
-    suspend fun handleAuthResponse(intent: Intent): Boolean = withContext(Dispatchers.IO) {
-        val response = AuthorizationResponse.fromIntent(intent)
-        val exception = AuthorizationException.fromIntent(intent)
+    suspend fun handleAuthResponse(intent: Intent): Boolean =
+        withContext(Dispatchers.IO) {
+            val response = AuthorizationResponse.fromIntent(intent)
+            val exception = AuthorizationException.fromIntent(intent)
 
-        // Update auth state with the authorization response
-        val authState = authStateManager.getAuthState()
-        authState.update(response, exception)
-        authStateManager.saveAuthState(authState)
+            // Update auth state with the authorization response
+            val authState = authStateManager.getAuthState()
+            authState.update(response, exception)
+            authStateManager.saveAuthState(authState)
 
-        if (response == null) {
-            Log.e(TAG, "Authorization failed: ${exception?.errorDescription}")
-            return@withContext false
+            if (response == null) {
+                Log.e(TAG, "Authorization failed: ${exception?.errorDescription}")
+                return@withContext false
+            }
+
+            // Exchange auth code for tokens (via CF Worker)
+            val success = exchangeCodeForTokens(response, authState)
+            if (success) {
+                _isAuthenticated.value = true
+                // Fetch and persist user profile
+                fetchAndCacheProfile()
+            }
+            success
         }
-
-        // Exchange auth code for tokens (via CF Worker)
-        val success = exchangeCodeForTokens(response, authState)
-        if (success) {
-            _isAuthenticated.value = true
-            // Fetch and persist user profile
-            fetchAndCacheProfile()
-        }
-        success
-    }
 
     private suspend fun exchangeCodeForTokens(
         response: AuthorizationResponse,
@@ -173,11 +178,12 @@ class AuthRepository(
         val authService = AuthorizationService(context)
 
         return try {
-            val (tokenResponse, tokenException) = suspendCancellableCoroutine { continuation ->
-                authService.performTokenRequest(tokenRequest) { resp, ex ->
-                    continuation.resume(resp to ex)
+            val (tokenResponse, tokenException) =
+                suspendCancellableCoroutine { continuation ->
+                    authService.performTokenRequest(tokenRequest) { resp, ex ->
+                        continuation.resume(resp to ex)
+                    }
                 }
-            }
 
             authState.update(tokenResponse, tokenException)
             authStateManager.saveAuthState(authState)
@@ -202,81 +208,86 @@ class AuthRepository(
     /**
      * Refreshes the access token using the stored refresh token.
      */
-    suspend fun refreshTokens(): Boolean = withContext(Dispatchers.IO) {
-        refreshMutex.withLock {
-            val authState = authStateManager.getAuthState()
+    suspend fun refreshTokens(): Boolean =
+        withContext(Dispatchers.IO) {
+            refreshMutex.withLock {
+                val authState = authStateManager.getAuthState()
 
-            if (authState.refreshToken == null) {
-                Log.w(TAG, "Cannot refresh token: refresh_token is missing")
-                _isAuthenticated.value = authState.accessToken != null
-                return@withLock false
-            }
-
-            val authService = AuthorizationService(context)
-            try {
-                val tokenRequest = authState.createTokenRefreshRequest()
-
-                val (tokenResponse, tokenException) = suspendCancellableCoroutine { continuation ->
-                    authService.performTokenRequest(tokenRequest) { resp, ex ->
-                        continuation.resume(resp to ex)
-                    }
+                if (authState.refreshToken == null) {
+                    Log.w(TAG, "Cannot refresh token: refresh_token is missing")
+                    _isAuthenticated.value = authState.accessToken != null
+                    return@withLock false
                 }
 
-                authState.update(tokenResponse, tokenException)
-                authStateManager.saveAuthState(authState)
+                val authService = AuthorizationService(context)
+                try {
+                    val tokenRequest = authState.createTokenRefreshRequest()
 
-                if (tokenException != null) {
-                    Log.e(TAG, "Token refresh failed: ${tokenException.errorDescription}")
+                    val (tokenResponse, tokenException) =
+                        suspendCancellableCoroutine { continuation ->
+                            authService.performTokenRequest(tokenRequest) { resp, ex ->
+                                continuation.resume(resp to ex)
+                            }
+                        }
+
+                    authState.update(tokenResponse, tokenException)
+                    authStateManager.saveAuthState(authState)
+
+                    if (tokenException != null) {
+                        Log.e(TAG, "Token refresh failed: ${tokenException.errorDescription}")
+                        _isAuthenticated.value = false
+                        false
+                    } else {
+                        _isAuthenticated.value = true
+                        true
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Token refresh error", e)
                     _isAuthenticated.value = false
                     false
-                } else {
-                    _isAuthenticated.value = true
-                    true
+                } finally {
+                    authService.dispose()
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Token refresh error", e)
-                _isAuthenticated.value = false
-                false
-            } finally {
-                authService.dispose()
             }
         }
-    }
 
     // ── User Profile ───────────────────────────────
 
     /**
      * Fetches the user profile from the Quran Foundation API and caches it.
      */
-    suspend fun fetchAndCacheProfile() = withContext(Dispatchers.IO) {
-        val accessToken = getValidAccessToken() ?: return@withContext
+    suspend fun fetchAndCacheProfile() =
+        withContext(Dispatchers.IO) {
+            val accessToken = getValidAccessToken() ?: return@withContext
 
-        try {
-            val profile = apiService.getUserProfile(
-                accessToken = accessToken,
-                clientId = QuranOAuthConfig.clientId,
-            )
-            _userProfile.value = profile
-            authStateManager.saveUserProfile(profile)
-            Log.d(TAG, "Profile fetched: ${profile.firstName} ${profile.lastName}")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to fetch profile", e)
-            // If 401, try refresh and retry once
-            if (e is retrofit2.HttpException && e.code() == 401) {
-                if (refreshTokens()) {
-                    retryProfileFetch()
+            try {
+                val profile =
+                    apiService.getUserProfile(
+                        accessToken = accessToken,
+                        clientId = QuranOAuthConfig.clientId,
+                    )
+                _userProfile.value = profile
+                authStateManager.saveUserProfile(profile)
+                Log.d(TAG, "Profile fetched: ${profile.firstName} ${profile.lastName}")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to fetch profile", e)
+                // If 401, try refresh and retry once
+                if (e is retrofit2.HttpException && e.code() == 401) {
+                    if (refreshTokens()) {
+                        retryProfileFetch()
+                    }
                 }
             }
         }
-    }
 
     private suspend fun retryProfileFetch() {
         val accessToken = getValidAccessToken() ?: return
         try {
-            val profile = apiService.getUserProfile(
-                accessToken = accessToken,
-                clientId = QuranOAuthConfig.clientId,
-            )
+            val profile =
+                apiService.getUserProfile(
+                    accessToken = accessToken,
+                    clientId = QuranOAuthConfig.clientId,
+                )
             _userProfile.value = profile
             authStateManager.saveUserProfile(profile)
         } catch (e: Exception) {
@@ -289,9 +300,10 @@ class AuthRepository(
     /**
      * Clears all auth state and user data.
      */
-    suspend fun logout() = withContext(Dispatchers.IO) {
-        authStateManager.clearAuthState()
-        _isAuthenticated.value = false
-        _userProfile.value = null
-    }
+    suspend fun logout() =
+        withContext(Dispatchers.IO) {
+            authStateManager.clearAuthState()
+            _isAuthenticated.value = false
+            _userProfile.value = null
+        }
 }

@@ -93,17 +93,19 @@ class ReminderOrchestrator(
         val todayStart = todayStartMillis()
         val prefs = context.hayahSettingsDataStore.data.first()
 
-        val detectionThreshold = (prefs[KEY_DETECTION_THRESHOLD] ?: DEFAULT_DETECTION_THRESHOLD)
-            .toInt()
-            .coerceAtLeast(1)
+        val detectionThreshold =
+            (prefs[KEY_DETECTION_THRESHOLD] ?: DEFAULT_DETECTION_THRESHOLD)
+                .toInt()
+                .coerceAtLeast(1)
         if (!passesDetectionThreshold(keyword, detectionThreshold)) {
             Log.d(TAG, "Detection threshold not reached for '$keyword' ($detectionThreshold)")
             return
         }
 
-        val maxDailyReminders = (prefs[KEY_MAX_REMINDERS] ?: DEFAULT_MAX_REMINDERS.toFloat())
-            .toInt()
-            .coerceAtLeast(1)
+        val maxDailyReminders =
+            (prefs[KEY_MAX_REMINDERS] ?: DEFAULT_MAX_REMINDERS.toFloat())
+                .toInt()
+                .coerceAtLeast(1)
 
         val shownTodayTotal = journalEntryDao.countEntriesSince(todayStart)
         if (shownTodayTotal >= maxDailyReminders) {
@@ -112,8 +114,9 @@ class ReminderOrchestrator(
             return
         }
 
-        val quietDurationMinutes = (prefs[KEY_QUIET_DURATION] ?: DEFAULT_QUIET_DURATION_MINUTES)
-            .coerceAtLeast(1f)
+        val quietDurationMinutes =
+            (prefs[KEY_QUIET_DURATION] ?: DEFAULT_QUIET_DURATION_MINUTES)
+                .coerceAtLeast(1f)
         val cooldownMs = (quietDurationMinutes * 60_000f).toLong()
 
         val lastReminderAt = journalEntryDao.getLatestEntryTimestamp() ?: 0L
@@ -158,7 +161,7 @@ class ReminderOrchestrator(
         keywordCacheDao.updateShownState(
             keyword = keyword,
             index = nextIndex,
-            time = System.currentTimeMillis()
+            time = System.currentTimeMillis(),
         )
 
         // 4. Read playAudio setting
@@ -182,7 +185,7 @@ class ReminderOrchestrator(
                 pageNumber = verse.pageNumber,
                 timestamp = now,
                 isUnread = true,
-            )
+            ),
         )
 
         resetDetectionCounter(keyword)
@@ -190,7 +193,10 @@ class ReminderOrchestrator(
         Log.d(TAG, "Reminder delivered: '$keyword' → ${verse.verseKey}")
     }
 
-    private fun passesDetectionThreshold(keyword: String, threshold: Int): Boolean {
+    private fun passesDetectionThreshold(
+        keyword: String,
+        threshold: Int,
+    ): Boolean {
         if (threshold <= 1) return true
 
         val nextCount = (detectionCounters[keyword] ?: 0) + 1
@@ -238,11 +244,12 @@ class ReminderOrchestrator(
 
         for (verseKey in verseKeys) {
             try {
-                val response = quranApiService.getVerseByKey(
-                    accessToken = accessToken,
-                    clientId = QuranOAuthConfig.clientId,
-                    verseKey = verseKey
-                )
+                val response =
+                    quranApiService.getVerseByKey(
+                        accessToken = accessToken,
+                        clientId = QuranOAuthConfig.clientId,
+                        verseKey = verseKey,
+                    )
                 val detail = response.verse ?: continue
 
                 val parsedVerseKey = parseVerseKey(verseKey)
@@ -250,42 +257,48 @@ class ReminderOrchestrator(
                 val verseNum = detail.verseNumber ?: parsedVerseKey?.second ?: continue
                 val textUthmani = detail.textUthmani ?: ""
                 val pageNumber = detail.pageNumber ?: 0
-                val translation = detail.translations?.firstOrNull()?.text
-                    ?.replace(Regex("<sup[^>]*>.*?</sup>"), "")
-                    ?.replace(Regex("<[^>]*>"), "") // strip HTML tags
-                    ?: ""
+                val translation =
+                    detail.translations
+                        ?.firstOrNull()
+                        ?.text
+                        ?.replace(Regex("<sup[^>]*>.*?</sup>"), "")
+                        ?.replace(Regex("<[^>]*>"), "") // strip HTML tags
+                        ?: ""
 
                 val surahName = surahNames?.get(chapterId) ?: "Surah $chapterId"
 
                 // Fetch audio
                 var audioUrl: String? = null
                 try {
-                    val audioResponse = quranApiService.getAudioForVerse(
-                        accessToken = accessToken,
-                        clientId = QuranOAuthConfig.clientId,
-                        recitationId = reciterId,
-                        verseKey = verseKey
-                    )
+                    val audioResponse =
+                        quranApiService.getAudioForVerse(
+                            accessToken = accessToken,
+                            clientId = QuranOAuthConfig.clientId,
+                            recitationId = reciterId,
+                            verseKey = verseKey,
+                        )
                     val rawUrl = audioResponse.audioFiles?.firstOrNull()?.url
-                    audioUrl = if (rawUrl != null && !rawUrl.startsWith("http")) {
-                        AUDIO_CDN_BASE + rawUrl
-                    } else {
-                        rawUrl
-                    }
+                    audioUrl =
+                        if (rawUrl != null && !rawUrl.startsWith("http")) {
+                            AUDIO_CDN_BASE + rawUrl
+                        } else {
+                            rawUrl
+                        }
                 } catch (e: Exception) {
                     Log.w(TAG, "Audio fetch failed for $verseKey", e)
                 }
 
-                val partial = CachedVerse(
-                    verseKey = verseKey,
-                    surahName = surahName,
-                    verseNumber = verseNum,
-                    textUthmani = textUthmani,
-                    translation = translation,
-                    reflection = "", // filled later
-                    audioUrl = audioUrl,
-                    pageNumber = pageNumber,
-                )
+                val partial =
+                    CachedVerse(
+                        verseKey = verseKey,
+                        surahName = surahName,
+                        verseNumber = verseNum,
+                        textUthmani = textUthmani,
+                        translation = translation,
+                        reflection = "", // filled later
+                        audioUrl = audioUrl,
+                        pageNumber = pageNumber,
+                    )
 
                 versesWithTranslations.add(Triple(verseKey, translation, partial))
             } catch (e: Exception) {
@@ -296,24 +309,27 @@ class ReminderOrchestrator(
         if (versesWithTranslations.isEmpty()) {
             Log.w(
                 TAG,
-                "No verse payloads could be materialized for '$keyword'. Likely missing chapter_id/verse_number in API payload."
+                "No verse payloads could be materialized for '$keyword'. Likely missing chapter_id/verse_number in API payload.",
             )
             return null
         }
 
         // Step 3: Generate reflections via AI
-        val translationPairs = versesWithTranslations.map { (key, translation, _) ->
-            key to translation
-        }
+        val translationPairs =
+            versesWithTranslations.map { (key, translation, _) ->
+                key to translation
+            }
         val reflections = verseRecommendationService.generateReflections(keyword, translationPairs)
 
         // Step 4: Merge reflections into verses
-        val finalVerses = versesWithTranslations.map { (key, _, partial) ->
-            partial.copy(
-                reflection = reflections[key]
-                    ?: "A reminder from the Quran about $keyword — reflect on this verse and its meaning in your daily life."
-            )
-        }
+        val finalVerses =
+            versesWithTranslations.map { (key, _, partial) ->
+                partial.copy(
+                    reflection =
+                        reflections[key]
+                            ?: "A reminder from the Quran about $keyword — reflect on this verse and its meaning in your daily life.",
+                )
+            }
 
         // Step 5: Cache
         keywordCacheDao.insertOrUpdate(
@@ -322,7 +338,7 @@ class ReminderOrchestrator(
                 versesJson = gson.toJson(finalVerses),
                 lastShownIndex = -1, // will be incremented to 0 on first show
                 lastShownTime = 0L,
-            )
+            ),
         )
 
         return finalVerses
@@ -332,10 +348,11 @@ class ReminderOrchestrator(
         val accessToken = authRepository.getValidAccessToken() ?: return
 
         try {
-            val response = quranApiService.getChapters(
-                accessToken = accessToken,
-                clientId = QuranOAuthConfig.clientId,
-            )
+            val response =
+                quranApiService.getChapters(
+                    accessToken = accessToken,
+                    clientId = QuranOAuthConfig.clientId,
+                )
             surahNames = response.chapters?.associate { (it.id ?: 0) to (it.nameSimple ?: "") }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to load surah names", e)
@@ -344,12 +361,13 @@ class ReminderOrchestrator(
     }
 
     private fun todayStartMillis(): Long {
-        val cal = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, 0)
-            set(Calendar.MINUTE, 0)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
-        }
+        val cal =
+            Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
         return cal.timeInMillis
     }
 

@@ -17,7 +17,6 @@ import retrofit2.http.Query
  * Retrofit interface for Quran Foundation content/user APIs.
  */
 interface QuranApiService {
-
     @GET("quran-reflect/v1/users/profile")
     suspend fun getUserProfile(
         @Header("x-auth-token") accessToken: String,

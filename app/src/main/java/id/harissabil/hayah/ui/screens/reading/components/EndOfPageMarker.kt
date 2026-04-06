@@ -27,26 +27,29 @@ fun EndOfPageMarker(
     isPosting: Boolean,
     postSuccess: Boolean,
     error: String?,
-    readingSeconds: Int
+    readingSeconds: Int,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 48.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier
-                .size(64.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceContainerLow),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .size(64.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow),
+            contentAlignment = Alignment.Center,
         ) {
             Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                modifier =
+                    Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)),
             )
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -56,10 +59,10 @@ fun EndOfPageMarker(
             fontWeight = FontWeight.Bold,
             fontSize = 12.sp,
             letterSpacing = 2.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha=0.5f)
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
         )
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Formulate reading time string:
         val minutes = readingSeconds / 60
         val seconds = readingSeconds % 60
@@ -70,7 +73,12 @@ fun EndOfPageMarker(
             Spacer(modifier = Modifier.height(8.dp))
             Text("Saving progress to quran.com...", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         } else if (postSuccess) {
-            Text("Progress saved to quran.com • Read in $timeString", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Medium)
+            Text(
+                "Progress saved to quran.com • Read in $timeString",
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Medium,
+            )
         } else if (error != null) {
             Text(error, fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
         }

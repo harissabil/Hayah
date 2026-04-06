@@ -25,40 +25,43 @@ fun JournalSearchBar(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.85f))
+                .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
             placeholder = {
                 Text(
                     text = "Search reflections...",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                 )
             },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Filled.Search,
                     contentDescription = "Search",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                 )
             },
             singleLine = true,
             shape = CircleShape,
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                unfocusedBorderColor = Color.Transparent,
-                focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                cursorColor = MaterialTheme.colorScheme.primary,
-            )
+            colors =
+                OutlinedTextFieldDefaults.colors(
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedBorderColor = Color.Transparent,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                ),
         )
     }
 }

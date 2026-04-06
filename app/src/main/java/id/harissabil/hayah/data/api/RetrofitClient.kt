@@ -12,25 +12,29 @@ import java.util.concurrent.TimeUnit
  * Singleton factory for creating the [QuranApiService] Retrofit instance.
  */
 object RetrofitClient {
-
     fun create(): QuranApiService {
-        val logging = HttpLoggingInterceptor().apply {
-            level = if (BuildConfig.DEBUG) {
-                HttpLoggingInterceptor.Level.BASIC
-            } else {
-                HttpLoggingInterceptor.Level.NONE
+        val logging =
+            HttpLoggingInterceptor().apply {
+                level =
+                    if (BuildConfig.DEBUG) {
+                        HttpLoggingInterceptor.Level.BASIC
+                    } else {
+                        HttpLoggingInterceptor.Level.NONE
+                    }
             }
-        }
 
-        val client = OkHttpClient.Builder()
-            .addInterceptor(logging)
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(20, TimeUnit.SECONDS)
-            .callTimeout(20, TimeUnit.SECONDS)
-            .build()
+        val client =
+            OkHttpClient
+                .Builder()
+                .addInterceptor(logging)
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(20, TimeUnit.SECONDS)
+                .callTimeout(20, TimeUnit.SECONDS)
+                .build()
 
-        return Retrofit.Builder()
+        return Retrofit
+            .Builder()
             .baseUrl(QuranOAuthConfig.apiBaseUrl)
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())

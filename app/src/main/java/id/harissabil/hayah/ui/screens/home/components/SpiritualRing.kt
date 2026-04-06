@@ -47,25 +47,26 @@ fun SpiritualRing(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec = infiniteRepeatable(tween(14000, easing = LinearEasing)),
-        label = "rotation_clockwise"
+        label = "rotation_clockwise",
     )
 
     val rotation2 by infiniteTransition.animateFloat(
         initialValue = 360f,
         targetValue = 0f,
         animationSpec = infiniteRepeatable(tween(18000, easing = LinearEasing)),
-        label = "rotation_counter_clockwise"
+        label = "rotation_counter_clockwise",
     )
 
     // Efek bernapas yang sangat halus (Breathing Depth)
     val pulse by infiniteTransition.animateFloat(
         initialValue = 0.96f,
         targetValue = 1.02f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(4000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "breathing_scale"
+        animationSpec =
+            infiniteRepeatable(
+                animation = tween(4000, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+        label = "breathing_scale",
     )
 
     // 2. Tonal Architecture Colors
@@ -73,15 +74,16 @@ fun SpiritualRing(
     val gradientStart = MaterialTheme.colorScheme.secondary // Sand / Gold
     val gradientEnd = MaterialTheme.colorScheme.primaryContainer // Emerald
 
-    val ringBrush = Brush.linearGradient(
-        colors = listOf(gradientStart, gradientEnd),
-        start = Offset(0f, 0f),
-        end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-    )
+    val ringBrush =
+        Brush.linearGradient(
+            colors = listOf(gradientStart, gradientEnd),
+            start = Offset(0f, 0f),
+            end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY),
+        )
 
     Box(
         modifier = modifier.size(size),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             val strokeWidth = 8.dp.toPx()
@@ -89,12 +91,11 @@ fun SpiritualRing(
 
             // Menggunakan efek scale untuk ilusi "napas"
             scale(scale = pulse, pivot = canvasCenter) {
-
                 // Ring 1: Base Glow/Ambient Shadow (Aturan "Ghost Border" & Ambient Depth)
                 drawCircle(
                     color = baseGlowColor,
                     style = Stroke(width = strokeWidth * 2.5f), // Lebih tebal, lebih samar
-                    radius = (this.size.minDimension / 2) - strokeWidth
+                    radius = (this.size.minDimension / 2) - strokeWidth,
                 )
 
                 // Ring 2: Cincin gradien organik pertama (Sedikit oval, berputar lambat)
@@ -102,11 +103,12 @@ fun SpiritualRing(
                     drawOval(
                         brush = ringBrush,
                         topLeft = Offset(strokeWidth, strokeWidth * 1.5f),
-                        size = Size(
-                            width = this.size.width - (strokeWidth * 2),
-                            height = this.size.height - (strokeWidth * 4) // Dibuat sedikit oval/squashed
-                        ),
-                        style = Stroke(width = strokeWidth)
+                        size =
+                            Size(
+                                width = this.size.width - (strokeWidth * 2),
+                                height = this.size.height - (strokeWidth * 4), // Dibuat sedikit oval/squashed
+                            ),
+                        style = Stroke(width = strokeWidth),
                     )
                 }
 
@@ -115,12 +117,13 @@ fun SpiritualRing(
                     drawOval(
                         brush = ringBrush,
                         topLeft = Offset(strokeWidth * 1.5f, strokeWidth),
-                        size = Size(
-                            width = this.size.width - (strokeWidth * 4),
-                            height = this.size.height - (strokeWidth * 2)
-                        ),
+                        size =
+                            Size(
+                                width = this.size.width - (strokeWidth * 4),
+                                height = this.size.height - (strokeWidth * 2),
+                            ),
                         style = Stroke(width = strokeWidth * 1.2f),
-                        alpha = 0.8f // Sedikit transparan agar membaur indah saat tumpang tindih
+                        alpha = 0.8f, // Sedikit transparan agar membaur indah saat tumpang tindih
                     )
                 }
             }
@@ -130,19 +133,21 @@ fun SpiritualRing(
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = pagesRead.toString(),
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontSize = 72.sp,
-                    letterSpacing = (-1.5).sp // Tight tracking untuk "Hero Moment"
-                ),
+                style =
+                    MaterialTheme.typography.displayLarge.copy(
+                        fontSize = 72.sp,
+                        letterSpacing = (-1.5).sp, // Tight tracking untuk "Hero Moment"
+                    ),
                 fontWeight = FontWeight.Light, // Dibuat lebih tipis agar selaras dengan ring yang soft
-                color = MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.onSurface,
             )
             Text(
                 text = "PAGES READ",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    letterSpacing = 2.sp // Uppercase dengan tracking lebar ala "Curator's Tag"
-                ),
-                color = MaterialTheme.colorScheme.secondary // Memberikan "Warmth"
+                style =
+                    MaterialTheme.typography.labelMedium.copy(
+                        letterSpacing = 2.sp, // Uppercase dengan tracking lebar ala "Curator's Tag"
+                    ),
+                color = MaterialTheme.colorScheme.secondary, // Memberikan "Warmth"
             )
         }
     }
@@ -156,7 +161,7 @@ private fun SpritualRingPreview() {
         Surface {
             Box(
                 modifier = Modifier.size(300.dp),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 SpiritualRing(pagesRead = 42)
             }

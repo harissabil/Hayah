@@ -12,7 +12,6 @@ import id.harissabil.hayah.BuildConfig
  * Client secrets are NOT stored in the app; they stay in the Cloudflare Worker.
  */
 object QuranOAuthConfig {
-
     // ──────────────────────────────────────────────
     //  Environment and endpoints from BuildConfig
     // ──────────────────────────────────────────────
@@ -24,9 +23,10 @@ object QuranOAuthConfig {
 
     val authEndpoint: Uri
         @SuppressLint("UseKtx")
-        get() = Uri.parse(
-            if (useProduction) BuildConfig.OAUTH_AUTH_ENDPOINT_PROD else BuildConfig.OAUTH_AUTH_ENDPOINT_TEST
-        )
+        get() =
+            Uri.parse(
+                if (useProduction) BuildConfig.OAUTH_AUTH_ENDPOINT_PROD else BuildConfig.OAUTH_AUTH_ENDPOINT_TEST,
+            )
 
     val tokenEndpoint: Uri
         get() = BuildConfig.OAUTH_TOKEN_PROXY_URL.toUri()
@@ -35,8 +35,9 @@ object QuranOAuthConfig {
         get() = BuildConfig.OAUTH_REVOKE_PROXY_URL.toUri()
 
     val apiBaseUrl: String
-        get() = (if (useProduction) BuildConfig.OAUTH_API_BASE_PROD else BuildConfig.OAUTH_API_BASE_TEST)
-            .let { if (it.endsWith("/")) it else "$it/" }
+        get() =
+            (if (useProduction) BuildConfig.OAUTH_API_BASE_PROD else BuildConfig.OAUTH_API_BASE_TEST)
+                .let { if (it.endsWith("/")) it else "$it/" }
 
     val redirectUri: Uri
         get() = BuildConfig.OAUTH_REDIRECT_URI.toUri()
@@ -44,13 +45,14 @@ object QuranOAuthConfig {
     // ──────────────────────────────────────────────
     //  Scopes requested during authorization
     // ──────────────────────────────────────────────
-    val SCOPES: List<String> = listOf(
-        "offline_access",
-        "content",
-        "reading_session",
-        "preference",
-        "activity_day",
-        "streak",
-        "user",
-    )
+    val SCOPES: List<String> =
+        listOf(
+            "offline_access",
+            "content",
+            "reading_session",
+            "preference",
+            "activity_day",
+            "streak",
+            "user",
+        )
 }

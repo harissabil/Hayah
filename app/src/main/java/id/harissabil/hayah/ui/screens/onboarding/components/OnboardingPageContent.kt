@@ -40,55 +40,58 @@ fun OnboardingPageContent(
     val surfaceColor = MaterialTheme.colorScheme.surface
 
     Box(modifier = modifier.fillMaxSize()) {
-
         // 1. Panorama image — fills the full pager slot edge-to-edge
         Image(
             painter = painterResource(id = page.imageRes),
             contentDescription = null,
             contentScale = ContentScale.FillWidth,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
         )
 
         // 2. Vertical scrim: transparent at top → opaque surface at bottom
         //    Keeps image visible in the upper portion while making text pop at the bottom
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colorStops = arrayOf(
-                            0.0f to Color.Transparent,
-                            0.42f to surfaceColor.copy(alpha = 0.10f),
-                            0.68f to surfaceColor.copy(alpha = 0.72f),
-                            1.0f to surfaceColor
-                        )
-                    )
-                )
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            colorStops =
+                                arrayOf(
+                                    0.0f to Color.Transparent,
+                                    0.42f to surfaceColor.copy(alpha = 0.10f),
+                                    0.68f to surfaceColor.copy(alpha = 0.72f),
+                                    1.0f to surfaceColor,
+                                ),
+                        ),
+                    ),
         )
 
         // 3. Title + body anchored to the bottom
         Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(horizontal = 32.dp, vertical = 24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier =
+                Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 32.dp, vertical = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = page.title,
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontSize = 28.sp,
-                    lineHeight = 36.sp
-                ),
+                style =
+                    MaterialTheme.typography.headlineLarge.copy(
+                        fontSize = 28.sp,
+                        lineHeight = 36.sp,
+                    ),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = page.body,
                 style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 26.sp),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }

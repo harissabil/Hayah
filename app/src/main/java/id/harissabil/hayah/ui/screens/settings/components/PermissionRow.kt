@@ -22,7 +22,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
-
 @Composable
 fun PermissionRow(
     iconBg: Color,
@@ -35,19 +34,28 @@ fun PermissionRow(
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(40.dp).clip(CircleShape).background(iconBg),
-                contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.size(40.dp).clip(CircleShape).background(iconBg),
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(imageVector = icon, contentDescription = null, tint = iconTint, modifier = Modifier.size(20.dp))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column {
-                Text(title, style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
-                Text(subtitle, style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         action()

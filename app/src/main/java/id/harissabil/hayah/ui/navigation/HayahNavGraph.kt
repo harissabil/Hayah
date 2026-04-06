@@ -42,10 +42,11 @@ fun HayahNavGraph(
         return
     }
 
-    val startDestination = when (authUiState) {
-        is AuthUiState.Authenticated -> Screen.Home.route
-        else -> Screen.Onboarding.route
-    }
+    val startDestination =
+        when (authUiState) {
+            is AuthUiState.Authenticated -> Screen.Home.route
+            else -> Screen.Onboarding.route
+        }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -67,15 +68,15 @@ fun HayahNavGraph(
                             launchSingleTop = true
                             restoreState = true
                         }
-                    }
+                    },
                 )
             }
-        }
+        },
     ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = modifier.padding(bottom = innerPadding.calculateBottomPadding())
+            modifier = modifier.padding(bottom = innerPadding.calculateBottomPadding()),
         ) {
             composable(Screen.Onboarding.route) {
                 OnboardingScreen(
@@ -92,10 +93,10 @@ fun HayahNavGraph(
                             Screen.QuranReading.createRoute(
                                 entryId = entryId,
                                 pageNumber = pageNumber,
-                                highlightedVerseKey = verseKey
-                            )
+                                highlightedVerseKey = verseKey,
+                            ),
                         )
-                    }
+                    },
                 )
             }
             slideContainerAnimationComposable(Screen.Settings.route) {
@@ -103,20 +104,21 @@ fun HayahNavGraph(
             }
             composable(
                 route = Screen.QuranReading.route,
-                arguments = listOf(
-                    navArgument("pageNumber") { type = NavType.IntType },
-                    navArgument("entryId") {
-                        type = NavType.LongType
-                        defaultValue = -1L // Gunakan default value karena Long tidak bisa nullable
-                    },
-                    navArgument("highlightedVerseKey") {
-                        type = NavType.StringType
-                        nullable = true
-                    }
-                )
+                arguments =
+                    listOf(
+                        navArgument("pageNumber") { type = NavType.IntType },
+                        navArgument("entryId") {
+                            type = NavType.LongType
+                            defaultValue = -1L // Gunakan default value karena Long tidak bisa nullable
+                        },
+                        navArgument("highlightedVerseKey") {
+                            type = NavType.StringType
+                            nullable = true
+                        },
+                    ),
             ) {
                 QuranReadingScreen(
-                    onNavigateBack = { navController.popBackStack() }
+                    onNavigateBack = { navController.popBackStack() },
                 )
             }
         }
