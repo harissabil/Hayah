@@ -15,13 +15,17 @@ import id.harissabil.hayah.data.model.UserProfileResponse
 import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.NotificationHelper
 import id.harissabil.hayah.service.ReminderOrchestrator
+import id.harissabil.hayah.service.executeWithNetworkRetry
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 enum class Period { THIS_WEEK, THIS_MONTH, ALL_TIME }
 
@@ -50,9 +54,13 @@ class HomeViewModel(
     companion object {
         private const val TAG = "HomeViewModel"
         private const val AUDIO_CDN_BASE = "https://verses.quran.com/"
+        private const val INSTANT_REFLECTION_KEYWORD = "Instant Reflection"
+        private const val AI_REFLECTION_TIMEOUT_MS = 2_500L
+        private const val OPTIONAL_API_MAX_ATTEMPTS = 2
     }
 
     private var readCountJob: Job? = null
+    private var chapterNameCache: Map<Int, String>? = null
 
     init {
         viewModelScope.launch {
@@ -129,14 +137,16 @@ class HomeViewModel(
                     return@launch
                 }
 
-                val keyword = "Instant Reflection"
+                val keyword = INSTANT_REFLECTION_KEYWORD
 
                 // 1. Fetch Random Verse
                 val randomVerseResponse =
-                    quranApiService.getRandomVerse(
-                        accessToken = accessToken,
-                        clientId = QuranOAuthConfig.clientId,
-                    )
+                    executeWithNetworkRetry {
+                        quranApiService.getRandomVerse(
+                            accessToken = accessToken,
+                            clientId = QuranOAuthConfig.clientId,
+                        )
+                    }
                 val detail = randomVerseResponse.verse
                 if (detail == null || detail.verseKey == null) {
                     _uiState.update {
@@ -152,7 +162,6 @@ class HomeViewModel(
                 val parsedVerseKey = parseVerseKey(verseKey)
                 val chapterId = detail.chapterId ?: parsedVerseKey?.first ?: 0
                 val verseNum = detail.verseNumber ?: parsedVerseKey?.second ?: 0
-                val textUthmani = detail.textUthmani ?: ""
                 val pageNumber = detail.pageNumber ?: 0
                 val rawTranslation = detail.translations?.firstOrNull()?.text ?: ""
                 val translation =
@@ -160,52 +169,40 @@ class HomeViewModel(
                         .replace(Regex("<sup[^>]*>.*?</sup>"), "")
                         .replace(Regex("<[^>]*>"), "")
 
-                // Fetch Chapters for surah name
-                var surahName = "Surah $chapterId"
-                try {
-                    val chaptersRes =
-                        quranApiService.getChapters(
-                            accessToken = accessToken,
-                            clientId = QuranOAuthConfig.clientId,
-                        )
-                    surahName = chaptersRes.chapters?.find { it.id == chapterId }?.nameSimple ?: surahName
-                } catch (e: Exception) {
-                    Log.w(TAG, "Failed to fetch chapters", e)
-                }
-
-                // 2. Fetch Audio from preferred reciter
                 val prefs = context.hayahSettingsDataStore.data.first()
                 val reciterId = prefs[ReminderOrchestrator.KEY_RECITER_ID] ?: 7 // Mishary Rashid Alafasy by default
 
-                var audioUrl: String? = null
-                try {
-                    val audioResponse =
-                        quranApiService.getAudioForVerse(
-                            accessToken = accessToken,
-                            clientId = QuranOAuthConfig.clientId,
-                            recitationId = reciterId,
-                            verseKey = verseKey,
-                        )
-                    val rawUrl = audioResponse.audioFiles?.firstOrNull()?.url
-                    audioUrl =
-                        if (rawUrl != null && !rawUrl.startsWith("http")) {
-                            AUDIO_CDN_BASE + rawUrl
-                        } else {
-                            rawUrl
-                        }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Audio fetch failed for $verseKey", e)
-                }
+                val (surahName, audioUrl, reflectionText) =
+                    coroutineScope {
+                        val surahNameDeferred =
+                            async {
+                                resolveSurahName(accessToken, chapterId)
+                            }
 
-                // 3. Generate AI Reflection
-                val reflectionMap =
-                    verseRecommendationService.generateReflections(
-                        keyword = keyword,
-                        versesWithTranslations = listOf(verseKey to translation),
-                    )
-                val reflectionText =
-                    reflectionMap[verseKey]
-                        ?: "A reminder from the Quran about $keyword — reflect on this verse and its meaning in your daily life."
+                        val audioUrlDeferred =
+                            async {
+                                fetchAudioUrl(
+                                    accessToken = accessToken,
+                                    reciterId = reciterId,
+                                    verseKey = verseKey,
+                                )
+                            }
+
+                        val reflectionDeferred =
+                            async {
+                                generateTimedReflection(
+                                    keyword = keyword,
+                                    verseKey = verseKey,
+                                    translation = translation,
+                                )
+                            }
+
+                        Triple(
+                            surahNameDeferred.await(),
+                            audioUrlDeferred.await(),
+                            reflectionDeferred.await(),
+                        )
+                    }
 
                 // 4. Save to Room as Unread
                 val tagStyleOrdinal = (keyword.hashCode() and 0x7FFFFFFF) % 3
@@ -248,6 +245,94 @@ class HomeViewModel(
                 }
             }
         }
+    }
+
+    private suspend fun resolveSurahName(
+        accessToken: String,
+        chapterId: Int,
+    ): String {
+        val fallback = "Surah $chapterId"
+        if (chapterId <= 0) return fallback
+
+        val cached = chapterNameCache
+        if (cached != null) {
+            return cached[chapterId] ?: fallback
+        }
+
+        return try {
+            val chaptersRes =
+                executeWithNetworkRetry(maxAttempts = OPTIONAL_API_MAX_ATTEMPTS) {
+                    quranApiService.getChapters(
+                        accessToken = accessToken,
+                        clientId = QuranOAuthConfig.clientId,
+                    )
+                }
+            val loadedCache =
+                chaptersRes.chapters
+                    .orEmpty()
+                    .mapNotNull { chapter ->
+                        val id = chapter.id
+                        val name = chapter.nameSimple
+                        if (id == null || name.isNullOrBlank()) null else id to name
+                    }.toMap()
+
+            chapterNameCache = loadedCache
+            loadedCache[chapterId] ?: fallback
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to fetch chapters", e)
+            fallback
+        }
+    }
+
+    private suspend fun fetchAudioUrl(
+        accessToken: String,
+        reciterId: Int,
+        verseKey: String,
+    ): String? =
+        try {
+            val audioResponse =
+                executeWithNetworkRetry(maxAttempts = OPTIONAL_API_MAX_ATTEMPTS) {
+                    quranApiService.getAudioForVerse(
+                        accessToken = accessToken,
+                        clientId = QuranOAuthConfig.clientId,
+                        recitationId = reciterId,
+                        verseKey = verseKey,
+                    )
+                }
+            val rawUrl = audioResponse.audioFiles?.firstOrNull()?.url
+            if (rawUrl != null && !rawUrl.startsWith("http")) {
+                AUDIO_CDN_BASE + rawUrl
+            } else {
+                rawUrl
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "Audio fetch failed for $verseKey", e)
+            null
+        }
+
+    private suspend fun generateTimedReflection(
+        keyword: String,
+        verseKey: String,
+        translation: String,
+    ): String {
+        val fallback =
+            "A reminder from the Quran about $keyword — reflect on this verse and its meaning in your daily life."
+
+        val maybeReflection =
+            withTimeoutOrNull(AI_REFLECTION_TIMEOUT_MS) {
+                val reflectionMap =
+                    verseRecommendationService.generateReflections(
+                        keyword = keyword,
+                        versesWithTranslations = listOf(verseKey to translation),
+                    )
+                reflectionMap[verseKey]
+            }
+
+        if (maybeReflection == null) {
+            Log.w(TAG, "Instant reflection generation timed out for $verseKey")
+        }
+
+        return maybeReflection ?: fallback
     }
 
     private fun parseVerseKey(verseKey: String): Pair<Int, Int>? {

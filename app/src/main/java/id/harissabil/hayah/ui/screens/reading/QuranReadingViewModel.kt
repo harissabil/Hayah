@@ -12,6 +12,7 @@ import id.harissabil.hayah.data.db.dao.ReadHistoryDao
 import id.harissabil.hayah.data.db.entity.ReadHistoryEntity
 import id.harissabil.hayah.data.model.ActivityDayRequest
 import id.harissabil.hayah.data.model.VerseDetail
+import id.harissabil.hayah.service.executeWithNetworkRetry
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -82,11 +83,13 @@ class QuranReadingViewModel(
                     authRepository.getValidAccessToken() ?: throw Exception("Not authenticated")
 
                 val response =
-                    quranApiService.getVersesByPage(
-                        accessToken = token,
-                        clientId = QuranOAuthConfig.clientId,
-                        pageNumber = pageNumber,
-                    )
+                    executeWithNetworkRetry {
+                        quranApiService.getVersesByPage(
+                            accessToken = token,
+                            clientId = QuranOAuthConfig.clientId,
+                            pageNumber = pageNumber,
+                        )
+                    }
 
                 // For chapter name, we will try to extract from the first and last verse of the page. If they belong to different chapters, we will show both.
                 val versesList = response.verses ?: emptyList()
@@ -109,10 +112,12 @@ class QuranReadingViewModel(
 
                     try {
                         val chaptersResponse =
-                            quranApiService.getChapters(
-                                accessToken = token,
-                                clientId = QuranOAuthConfig.clientId,
-                            )
+                            executeWithNetworkRetry {
+                                quranApiService.getChapters(
+                                    accessToken = token,
+                                    clientId = QuranOAuthConfig.clientId,
+                                )
+                            }
                         val chapters = chaptersResponse.chapters ?: emptyList()
 
                         val firstChapterName =

@@ -245,11 +245,13 @@ class ReminderOrchestrator(
         for (verseKey in verseKeys) {
             try {
                 val response =
-                    quranApiService.getVerseByKey(
-                        accessToken = accessToken,
-                        clientId = QuranOAuthConfig.clientId,
-                        verseKey = verseKey,
-                    )
+                    executeWithNetworkRetry {
+                        quranApiService.getVerseByKey(
+                            accessToken = accessToken,
+                            clientId = QuranOAuthConfig.clientId,
+                            verseKey = verseKey,
+                        )
+                    }
                 val detail = response.verse ?: continue
 
                 val parsedVerseKey = parseVerseKey(verseKey)
@@ -271,12 +273,14 @@ class ReminderOrchestrator(
                 var audioUrl: String? = null
                 try {
                     val audioResponse =
-                        quranApiService.getAudioForVerse(
-                            accessToken = accessToken,
-                            clientId = QuranOAuthConfig.clientId,
-                            recitationId = reciterId,
-                            verseKey = verseKey,
-                        )
+                        executeWithNetworkRetry {
+                            quranApiService.getAudioForVerse(
+                                accessToken = accessToken,
+                                clientId = QuranOAuthConfig.clientId,
+                                recitationId = reciterId,
+                                verseKey = verseKey,
+                            )
+                        }
                     val rawUrl = audioResponse.audioFiles?.firstOrNull()?.url
                     audioUrl =
                         if (rawUrl != null && !rawUrl.startsWith("http")) {
@@ -349,10 +353,12 @@ class ReminderOrchestrator(
 
         try {
             val response =
-                quranApiService.getChapters(
-                    accessToken = accessToken,
-                    clientId = QuranOAuthConfig.clientId,
-                )
+                executeWithNetworkRetry {
+                    quranApiService.getChapters(
+                        accessToken = accessToken,
+                        clientId = QuranOAuthConfig.clientId,
+                    )
+                }
             surahNames = response.chapters?.associate { (it.id ?: 0) to (it.nameSimple ?: "") }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to load surah names", e)

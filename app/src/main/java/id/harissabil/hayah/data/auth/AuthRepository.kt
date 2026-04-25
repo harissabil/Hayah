@@ -19,6 +19,9 @@ import net.openid.appauth.AuthorizationResponse
 import net.openid.appauth.AuthorizationService
 import net.openid.appauth.AuthorizationServiceConfiguration
 import net.openid.appauth.ResponseTypeValues
+import java.io.IOException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import kotlin.coroutines.resume
 
 /**
@@ -212,6 +215,7 @@ class AuthRepository(
         withContext(Dispatchers.IO) {
             refreshMutex.withLock {
                 val authState = authStateManager.getAuthState()
+                val hadSessionBeforeRefresh = authState.accessToken != null || authState.refreshToken != null
 
                 if (authState.refreshToken == null) {
                     Log.w(TAG, "Cannot refresh token: refresh_token is missing")
@@ -235,7 +239,12 @@ class AuthRepository(
 
                     if (tokenException != null) {
                         Log.e(TAG, "Token refresh failed: ${tokenException.errorDescription}")
-                        _isAuthenticated.value = false
+                        _isAuthenticated.value =
+                            if (isTransientRefreshFailure(tokenException) && hadSessionBeforeRefresh) {
+                                true
+                            } else {
+                                false
+                            }
                         false
                     } else {
                         _isAuthenticated.value = true
@@ -243,12 +252,30 @@ class AuthRepository(
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Token refresh error", e)
-                    _isAuthenticated.value = false
+                    _isAuthenticated.value =
+                        if (isTransientNetworkError(e) && hadSessionBeforeRefresh) {
+                            true
+                        } else {
+                            false
+                        }
                     false
                 } finally {
                     authService.dispose()
                 }
             }
+        }
+
+    private fun isTransientRefreshFailure(exception: AuthorizationException): Boolean =
+        exception.type == AuthorizationException.TYPE_GENERAL_ERROR &&
+            exception.code == AuthorizationException.GeneralErrors.NETWORK_ERROR.code
+
+    private fun isTransientNetworkError(error: Throwable): Boolean =
+        when (error) {
+            is SocketTimeoutException,
+            is UnknownHostException,
+            is IOException,
+            -> true
+            else -> false
         }
 
     // ── User Profile ───────────────────────────────

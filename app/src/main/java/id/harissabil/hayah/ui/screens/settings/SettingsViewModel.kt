@@ -18,6 +18,7 @@ import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.model.RecitationItem
 import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.HayahAccessibilityService
+import id.harissabil.hayah.service.executeWithNetworkRetry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -201,11 +202,13 @@ class SettingsViewModel(
 
             try {
                 val response =
-                    quranApiService.getRecitations(
-                        accessToken = accessToken,
-                        clientId = QuranOAuthConfig.clientId,
-                        language = "en",
-                    )
+                    executeWithNetworkRetry {
+                        quranApiService.getRecitations(
+                            accessToken = accessToken,
+                            clientId = QuranOAuthConfig.clientId,
+                            language = "en",
+                        )
+                    }
 
                 val options =
                     response.recitations
