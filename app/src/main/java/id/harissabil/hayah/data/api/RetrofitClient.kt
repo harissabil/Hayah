@@ -2,6 +2,7 @@ package id.harissabil.hayah.data.api
 
 import id.harissabil.hayah.BuildConfig
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
+import okhttp3.ConnectionPool
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -27,10 +28,13 @@ object RetrofitClient {
             OkHttpClient
                 .Builder()
                 .addInterceptor(logging)
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(20, TimeUnit.SECONDS)
-                .callTimeout(20, TimeUnit.SECONDS)
+                .retryOnConnectionFailure(true)
+                .connectionPool(ConnectionPool(5, 2, TimeUnit.MINUTES))
+                .connectTimeout(20, TimeUnit.SECONDS)
+                .writeTimeout(20, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .callTimeout(40, TimeUnit.SECONDS)
+                .pingInterval(15, TimeUnit.SECONDS)
                 .build()
 
         return Retrofit
