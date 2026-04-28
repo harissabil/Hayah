@@ -92,7 +92,12 @@ class AuthRepository(
     suspend fun getValidAccessToken(): String? =
         withContext(Dispatchers.IO) {
             val authState = authStateManager.getAuthState()
-            val currentToken = authState.accessToken ?: return@withContext null
+            val currentToken = authState.accessToken
+
+            if (currentToken == null) {
+                if (authState.refreshToken == null) return@withContext null
+                return@withContext if (refreshTokens()) authStateManager.getAuthState().accessToken else null
+            }
 
             if (!shouldRefreshTokenSoon(authState)) {
                 return@withContext currentToken

@@ -230,6 +230,10 @@ class QuranReadingViewModel(
             }
     }
 
+    fun retry() {
+        loadPageData()
+    }
+
     fun onBottomReached() {
         if (_uiState.value.hasReachedBottom || _uiState.value.isLoading || _uiState.value.verses.isEmpty()) return
 
