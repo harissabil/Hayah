@@ -89,6 +89,7 @@ val appModule =
                 authRepository = get(),
                 readHistoryDao = get(),
                 journalEntryDao = get(),
+                context = androidContext(),
             )
         }
     }
