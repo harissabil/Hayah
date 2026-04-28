@@ -124,10 +124,11 @@ fun QuranReadingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                        .align(Alignment.CenterHorizontally),
+                    modifier =
+                        Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                            .align(Alignment.CenterHorizontally),
                     text = "Error: ${uiState.error}",
                     textAlign = TextAlign.Center,
                     color = MaterialTheme.colorScheme.error,
