@@ -9,8 +9,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,10 +38,13 @@ import id.harissabil.hayah.ui.theme.UthmaniFamily
 fun VerseItem(
     verse: VerseDetail,
     isHighlighted: Boolean,
+    isPlaying: Boolean = false,
+    isBuffering: Boolean = false,
+    onPlayClick: () -> Unit = {},
 ) {
     val arabicText =
         verse.textUthmani
-            ?.replace('\u06DF', '\u0652')
+            ?.replace('۟', 'ْ')
             ?: ""
 
     val verseNumber = verse.verseNumber ?: 0
@@ -51,10 +61,10 @@ fun VerseItem(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
                 .clip(RoundedCornerShape(24.dp))
                 .background(
-                    if (isHighlighted) {
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainerLowest
+                    when {
+                        isHighlighted -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+                        isPlaying -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.08f)
+                        else -> MaterialTheme.colorScheme.surfaceContainerLowest
                     },
                 ).padding(
                     top = if (isHighlighted) 48.dp else 24.dp,
@@ -71,8 +81,11 @@ fun VerseItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top,
             ) {
-                if (isHighlighted) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                // Verse number + speaker icon
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    if (isHighlighted) {
                         Text(
                             text = verseNumber.toString(),
                             fontFamily = ManropeFamily,
@@ -80,15 +93,42 @@ fun VerseItem(
                             fontSize = 24.sp,
                             color = MaterialTheme.colorScheme.primary,
                         )
+                    } else {
+                        Text(
+                            text = verseNumber.toString(),
+                            fontFamily = ManropeFamily,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        )
                     }
-                } else {
-                    Text(
-                        text = verseNumber.toString(),
-                        fontFamily = ManropeFamily,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    IconButton(
+                        onClick = onPlayClick,
+                        modifier = Modifier.size(32.dp),
+                    ) {
+                        when {
+                            isBuffering -> CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            isPlaying -> Icon(
+                                imageVector = Icons.Filled.Pause,
+                                contentDescription = "Pause recitation",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp),
+                            )
+                            else -> Icon(
+                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = "Play recitation",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(16.dp))

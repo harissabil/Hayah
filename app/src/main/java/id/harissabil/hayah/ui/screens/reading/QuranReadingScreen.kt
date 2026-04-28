@@ -1,5 +1,10 @@
 package id.harissabil.hayah.ui.screens.reading
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +42,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.harissabil.hayah.ui.screens.reading.components.AudioPlayerBar
 import id.harissabil.hayah.ui.screens.reading.components.EndOfPageMarker
 import id.harissabil.hayah.ui.screens.reading.components.VerseItem
 import id.harissabil.hayah.ui.theme.ManropeFamily
@@ -51,7 +57,6 @@ fun QuranReadingScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val listState = rememberLazyListState()
 
-    // Detecting when the user has scrolled to the bottom
     val isAtBottom by remember {
         derivedStateOf {
             val layoutInfo = listState.layoutInfo
@@ -65,6 +70,13 @@ fun QuranReadingScreen(
         if (isAtBottom && !uiState.isLoading && uiState.verses.isNotEmpty()) {
             viewModel.onBottomReached()
         }
+    }
+
+    // Auto-scroll to the currently playing verse
+    LaunchedEffect(uiState.audioState.currentVerseKey) {
+        val verseKey = uiState.audioState.currentVerseKey ?: return@LaunchedEffect
+        val index = uiState.verses.indexOfFirst { it.verseKey == verseKey }
+        if (index >= 0) listState.animateScrollToItem(index)
     }
 
     Scaffold(
@@ -139,26 +151,72 @@ fun QuranReadingScreen(
                 }
             }
         } else {
-            LazyColumn(
-                state = listState,
+            val audioState = uiState.audioState
+            val playerVisible = audioState.currentVerseKey != null
+
+            Box(
                 modifier =
                     Modifier
                         .fillMaxSize()
                         .padding(paddingValues),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 48.dp),
             ) {
-                items(uiState.verses, key = { it.verseKey ?: it.hashCode() }) { verse ->
-                    val isHighlighted = verse.verseKey == uiState.highlightedVerseKey
-                    VerseItem(verse = verse, isHighlighted = isHighlighted)
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding =
+                        PaddingValues(
+                            top = 16.dp,
+                            // Extra bottom padding when the player bar is visible so
+                            // EndOfPageMarker is never hidden behind it.
+                            bottom = if (playerVisible) 120.dp else 48.dp,
+                        ),
+                ) {
+                    items(uiState.verses, key = { it.verseKey ?: it.hashCode() }) { verse ->
+                        val isHighlighted = verse.verseKey == uiState.highlightedVerseKey
+                        val isVerseActive = verse.verseKey != null && verse.verseKey == audioState.currentVerseKey
+                        VerseItem(
+                            verse = verse,
+                            isHighlighted = isHighlighted,
+                            isPlaying = isVerseActive && audioState.isPlaying,
+                            isBuffering = isVerseActive && audioState.isBuffering,
+                            onPlayClick = {
+                                val key = verse.verseKey ?: return@VerseItem
+                                viewModel.onVersePlayRequested(key)
+                            },
+                        )
+                    }
+
+                    item {
+                        EndOfPageMarker(
+                            pageNumber = uiState.pageNumber,
+                            isPosting = uiState.isPosting,
+                            postSuccess = uiState.postSuccess,
+                            error = if (uiState.hasReachedBottom) uiState.error else null,
+                            readingSeconds = uiState.readingSeconds,
+                        )
+                    }
                 }
 
-                item {
-                    EndOfPageMarker(
-                        pageNumber = uiState.pageNumber,
-                        isPosting = uiState.isPosting,
-                        postSuccess = uiState.postSuccess,
-                        error = if (uiState.hasReachedBottom) uiState.error else null,
-                        readingSeconds = uiState.readingSeconds,
+                AnimatedVisibility(
+                    visible = playerVisible,
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                    exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
+                ) {
+                    val playingVerseKey = audioState.currentVerseKey ?: ""
+                    val chapterId = playingVerseKey.substringBefore(":").toIntOrNull() ?: 0
+                    val verseNum = playingVerseKey.substringAfter(":").toIntOrNull() ?: 0
+                    val chapterName = uiState.chapterNames[chapterId] ?: "Surah $chapterId"
+
+                    AudioPlayerBar(
+                        chapterName = chapterName,
+                        verseNumber = verseNum,
+                        isPlaying = audioState.isPlaying,
+                        isBuffering = audioState.isBuffering,
+                        currentPositionMs = audioState.currentPositionMs,
+                        durationMs = audioState.durationMs,
+                        onPlayPauseClick = viewModel::onTogglePlayPause,
+                        onStopClick = viewModel::onStopPlayback,
                     )
                 }
             }
