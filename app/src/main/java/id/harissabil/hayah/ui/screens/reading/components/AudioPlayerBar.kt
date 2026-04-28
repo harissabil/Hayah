@@ -68,23 +68,26 @@ fun AudioPlayerBar(
             modifier = Modifier.size(48.dp),
         ) {
             when {
-                isBuffering -> CircularProgressIndicator(
-                    modifier = Modifier.size(28.dp),
-                    strokeWidth = 3.dp,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                isPlaying -> Icon(
-                    imageVector = Icons.Filled.Pause,
-                    contentDescription = "Pause",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp),
-                )
-                else -> Icon(
-                    imageVector = Icons.Filled.PlayArrow,
-                    contentDescription = "Play",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp),
-                )
+                isBuffering ->
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(28.dp),
+                        strokeWidth = 3.dp,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                isPlaying ->
+                    Icon(
+                        imageVector = Icons.Filled.Pause,
+                        contentDescription = "Pause",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp),
+                    )
+                else ->
+                    Icon(
+                        imageVector = Icons.Filled.PlayArrow,
+                        contentDescription = "Play",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp),
+                    )
             }
         }
 

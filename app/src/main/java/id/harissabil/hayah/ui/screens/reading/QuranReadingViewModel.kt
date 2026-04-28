@@ -404,13 +404,14 @@ class QuranReadingViewModel(
             viewModelScope.launch {
                 while (true) {
                     delay(PROGRESS_POLL_MS)
-                    val position = withContext(Dispatchers.Main) {
-                        try {
-                            mediaPlayer?.currentPosition ?: 0
-                        } catch (e: IllegalStateException) {
-                            0
+                    val position =
+                        withContext(Dispatchers.Main) {
+                            try {
+                                mediaPlayer?.currentPosition ?: 0
+                            } catch (e: IllegalStateException) {
+                                0
+                            }
                         }
-                    }
                     _uiState.update { it.copy(audioState = it.audioState.copy(currentPositionMs = position)) }
                 }
             }

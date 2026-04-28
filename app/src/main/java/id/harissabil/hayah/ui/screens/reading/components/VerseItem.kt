@@ -110,23 +110,26 @@ fun VerseItem(
                         modifier = Modifier.size(32.dp),
                     ) {
                         when {
-                            isBuffering -> CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.primary,
-                            )
-                            isPlaying -> Icon(
-                                imageVector = Icons.Filled.Pause,
-                                contentDescription = "Pause recitation",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp),
-                            )
-                            else -> Icon(
-                                imageVector = Icons.AutoMirrored.Filled.VolumeUp,
-                                contentDescription = "Play recitation",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.size(20.dp),
-                            )
+                            isBuffering ->
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(18.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            isPlaying ->
+                                Icon(
+                                    imageVector = Icons.Filled.Pause,
+                                    contentDescription = "Pause recitation",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                            else ->
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = "Play recitation",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                    modifier = Modifier.size(20.dp),
+                                )
                         }
                     }
                 }
