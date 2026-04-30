@@ -1,6 +1,7 @@
 package id.harissabil.hayah.data.api
 
 import id.harissabil.hayah.data.model.ActivityDayRequest
+import id.harissabil.hayah.data.model.ActivityDaysResponse
 import id.harissabil.hayah.data.model.AudioRecitationResponse
 import id.harissabil.hayah.data.model.ChaptersResponse
 import id.harissabil.hayah.data.model.RecitationsResponse
@@ -81,4 +82,16 @@ interface QuranApiService {
         @Header("x-timezone") timezone: String,
         @Body request: ActivityDayRequest,
     )
+
+    @GET("auth/v1/activity-days")
+    suspend fun getActivityDays(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Header("x-timezone") timezone: String,
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null,
+        @Query("type") type: String = "QURAN",
+        @Query("first") first: Int = 20,
+        @Query("after") after: String? = null,
+    ): ActivityDaysResponse
 }

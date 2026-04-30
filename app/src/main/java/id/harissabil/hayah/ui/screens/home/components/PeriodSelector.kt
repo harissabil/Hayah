@@ -43,6 +43,7 @@ fun PeriodSelector(
 
     val label =
         when (selectedPeriod) {
+            Period.TODAY -> "Today"
             Period.THIS_WEEK -> "This Week"
             Period.THIS_MONTH -> "This Month"
             Period.ALL_TIME -> "All Time"
@@ -96,6 +97,7 @@ fun PeriodSelector(
                         Text(
                             text =
                                 when (period) {
+                                    Period.TODAY -> "Today"
                                     Period.THIS_WEEK -> "This Week"
                                     Period.THIS_MONTH -> "This Month"
                                     Period.ALL_TIME -> "All Time"
