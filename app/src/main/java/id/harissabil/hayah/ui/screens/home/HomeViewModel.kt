@@ -24,7 +24,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -59,7 +58,6 @@ class HomeViewModel(
         private const val TAG = "HomeViewModel"
         private const val AUDIO_CDN_BASE = "https://verses.quran.com/"
         private const val INSTANT_REFLECTION_KEYWORD = "Instant Reflection"
-        private const val AI_REFLECTION_TIMEOUT_MS = 2_500L
         private const val OPTIONAL_API_MAX_ATTEMPTS = 2
     }
 
@@ -366,22 +364,17 @@ class HomeViewModel(
     ): String {
         val fallback =
             "A reminder from the Quran about $keyword — reflect on this verse and its meaning in your daily life."
-
-        val maybeReflection =
-            withTimeoutOrNull(AI_REFLECTION_TIMEOUT_MS) {
-                val reflectionMap =
-                    verseRecommendationService.generateReflections(
-                        keyword = keyword,
-                        versesWithTranslations = listOf(verseKey to translation),
-                    )
-                reflectionMap[verseKey]
-            }
-
-        if (maybeReflection == null) {
-            Log.w(TAG, "Instant reflection generation timed out for $verseKey")
+        return try {
+            val reflectionMap =
+                verseRecommendationService.generateReflections(
+                    keyword = keyword,
+                    versesWithTranslations = listOf(verseKey to translation),
+                )
+            reflectionMap[verseKey] ?: fallback
+        } catch (e: Exception) {
+            Log.w(TAG, "Reflection generation failed for $verseKey", e)
+            fallback
         }
-
-        return maybeReflection ?: fallback
     }
 
     private fun parseVerseKey(verseKey: String): Pair<Int, Int>? {
