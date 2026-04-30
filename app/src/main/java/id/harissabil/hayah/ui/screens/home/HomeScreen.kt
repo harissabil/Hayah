@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -29,6 +30,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -276,12 +278,24 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            SpiritualRing(
-                pagesRead = uiState.pagesRead,
+            Box(contentAlignment = Alignment.Center) {
+                SpiritualRing(
+                    pagesRead = uiState.pagesRead,
 //                totalVerses = uiState.totalVerses
-            )
+                )
+                if (uiState.isPagesReadLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
+
+            if (uiState.pagesReadError != null && !uiState.isPagesReadLoading) {
+                TextButton(onClick = { viewModel.retryFetchPagesRead() }) {
+                    Text(text = "Retry", color = MaterialTheme.colorScheme.error)
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+            }
 
             PeriodSelector(
                 selectedPeriod = uiState.selectedPeriod,

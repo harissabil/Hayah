@@ -131,14 +131,22 @@ fun SpiritualRing(
 
         // 3. Editorial Typography
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            val digitCount = pagesRead.toString().length
+            val fontSize =
+                when {
+                    digitCount <= 2 -> 72.sp
+                    digitCount == 3 -> 58.sp
+                    digitCount == 4 -> 46.sp
+                    else -> 34.sp
+                }
             Text(
                 text = pagesRead.toString(),
                 style =
                     MaterialTheme.typography.displayLarge.copy(
-                        fontSize = 72.sp,
-                        letterSpacing = (-1.5).sp, // Tight tracking untuk "Hero Moment"
+                        fontSize = fontSize,
+                        letterSpacing = (-1.5).sp,
                     ),
-                fontWeight = FontWeight.Light, // Dibuat lebih tipis agar selaras dengan ring yang soft
+                fontWeight = FontWeight.Light,
                 color = MaterialTheme.colorScheme.onSurface,
             )
             Text(

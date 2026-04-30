@@ -76,7 +76,6 @@ val appModule =
                 quranApiService = get(),
                 verseRecommendationService = get(),
                 notificationHelper = get(),
-                readHistoryDao = get(),
             )
         }
         viewModel { OnboardingViewModel() }

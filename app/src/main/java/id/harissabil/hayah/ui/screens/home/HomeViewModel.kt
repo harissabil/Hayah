@@ -9,7 +9,6 @@ import id.harissabil.hayah.data.api.QuranApiService
 import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.db.dao.JournalEntryDao
-import id.harissabil.hayah.data.db.dao.ReadHistoryDao
 import id.harissabil.hayah.data.db.entity.JournalEntryEntity
 import id.harissabil.hayah.data.model.UserProfileResponse
 import id.harissabil.hayah.data.settings.hayahSettingsDataStore
@@ -26,14 +25,20 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
-enum class Period { THIS_WEEK, THIS_MONTH, ALL_TIME }
+enum class Period { TODAY, THIS_WEEK, THIS_MONTH, ALL_TIME }
 
 data class HomeUiState(
     val userName: String = "",
     val pagesRead: Int = 0,
     val selectedPeriod: Period = Period.THIS_WEEK,
     val profilePhotoUrl: String? = null,
+    val isPagesReadLoading: Boolean = false,
+    val pagesReadError: String? = null,
     val isInstantReflectionLoading: Boolean = false,
     val instantReflectionError: String? = null,
     val newlyGeneratedEntry: JournalEntryEntity? = null,
@@ -46,7 +51,6 @@ class HomeViewModel(
     private val quranApiService: QuranApiService,
     private val verseRecommendationService: VerseRecommendationService,
     private val notificationHelper: NotificationHelper,
-    private val readHistoryDao: ReadHistoryDao,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -68,29 +72,70 @@ class HomeViewModel(
                 updateFromProfile(profile)
             }
         }
-        observePagesRead(Period.THIS_WEEK)
+        fetchPagesRead(Period.THIS_WEEK)
     }
 
-    private fun observePagesRead(period: Period) {
+    private fun fetchPagesRead(period: Period) {
         readCountJob?.cancel()
         readCountJob =
             viewModelScope.launch {
-                val flow =
-                    when (period) {
-                        Period.ALL_TIME -> readHistoryDao.countAllEntries()
-                        Period.THIS_WEEK -> {
-                            val sevenDaysAgo = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L
-                            readHistoryDao.countEntriesSince(sevenDaysAgo)
-                        }
-                        Period.THIS_MONTH -> {
-                            val thirtyDaysAgo = System.currentTimeMillis() - 30 * 24 * 60 * 60 * 1000L
-                            readHistoryDao.countEntriesSince(thirtyDaysAgo)
-                        }
+                _uiState.update { it.copy(isPagesReadLoading = true, pagesReadError = null) }
+                try {
+                    val accessToken =
+                        authRepository.getValidAccessToken()
+                            ?: throw Exception("Authentication required.")
+                    val (from, to) = getDateRange(period)
+                    var total = 0.0
+                    var cursor: String? = null
+                    var hasNext = true
+                    while (hasNext) {
+                        val response =
+                            quranApiService.getActivityDays(
+                                accessToken = accessToken,
+                                clientId = QuranOAuthConfig.clientId,
+                                timezone = TimeZone.getDefault().id,
+                                from = from,
+                                to = to,
+                                after = cursor,
+                            )
+                        total += response.data.sumOf { it.pagesRead }
+                        hasNext = response.pagination.hasNextPage
+                        cursor = response.pagination.endCursor
                     }
-                flow.collect { count ->
-                    _uiState.update { it.copy(pagesRead = count) }
+                    _uiState.update { it.copy(pagesRead = total.toInt(), isPagesReadLoading = false) }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to fetch pages read", e)
+                    _uiState.update {
+                        it.copy(
+                            isPagesReadLoading = false,
+                            pagesReadError = e.localizedMessage ?: "Failed to load pages read",
+                        )
+                    }
                 }
             }
+    }
+
+    private fun getDateRange(period: Period): Pair<String?, String?> {
+        val fmt = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+        val today = Calendar.getInstance()
+        return when (period) {
+            Period.TODAY -> {
+                val todayStr = fmt.format(today.time)
+                todayStr to todayStr
+            }
+            Period.THIS_WEEK -> {
+                val monday = today.clone() as Calendar
+                monday.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+                if (monday.after(today)) monday.add(Calendar.WEEK_OF_YEAR, -1)
+                fmt.format(monday.time) to fmt.format(today.time)
+            }
+            Period.THIS_MONTH -> {
+                val firstDay = today.clone() as Calendar
+                firstDay.set(Calendar.DAY_OF_MONTH, 1)
+                fmt.format(firstDay.time) to fmt.format(today.time)
+            }
+            Period.ALL_TIME -> null to null
+        }
     }
 
     fun updateFromProfile(profile: UserProfileResponse?) {
@@ -113,7 +158,11 @@ class HomeViewModel(
 
     fun onPeriodSelected(period: Period) {
         _uiState.update { it.copy(selectedPeriod = period) }
-        observePagesRead(period)
+        fetchPagesRead(period)
+    }
+
+    fun retryFetchPagesRead() {
+        fetchPagesRead(_uiState.value.selectedPeriod)
     }
 
     fun dismissInstantReflectionError() {

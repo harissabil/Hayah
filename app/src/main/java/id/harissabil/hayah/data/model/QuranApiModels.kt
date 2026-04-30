@@ -79,3 +79,29 @@ data class ActivityDayRequest(
     val ranges: List<String>,
     val mushafId: Int = 4,
 )
+
+// ── Activity days GET response ────────────────────
+
+data class ActivityDaysResponse(
+    val success: Boolean = false,
+    val data: List<ActivityDay> = emptyList(),
+    val pagination: ActivityDaysPagination = ActivityDaysPagination(),
+)
+
+data class ActivityDay(
+    val id: String = "",
+    val date: String = "",
+    val type: String = "",
+    val pagesRead: Double = 0.0,
+    val versesRead: Int = 0,
+    val secondsRead: Int = 0,
+    val ranges: List<String> = emptyList(),
+    val mushafId: Int = 0,
+)
+
+data class ActivityDaysPagination(
+    val hasNextPage: Boolean = false,
+    val hasPreviousPage: Boolean = false,
+    val startCursor: String? = null,
+    val endCursor: String? = null,
+)
