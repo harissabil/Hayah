@@ -58,6 +58,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.harissabil.hayah.ui.screens.settings.components.AppearancePicker
+import id.harissabil.hayah.ui.screens.settings.components.MyKeywordsSection
 import id.harissabil.hayah.ui.screens.settings.components.PermissionRow
 import id.harissabil.hayah.ui.screens.settings.components.SettingsIconBox
 import id.harissabil.hayah.ui.screens.settings.components.SettingsNavRow
@@ -416,6 +417,16 @@ fun SettingsScreen(
                     )
                 }
             }
+
+            // My Keywords
+            MyKeywordsSection(
+                keywords = uiState.customKeywords,
+                isAddDialogOpen = uiState.isAddKeywordDialogOpen,
+                onAddKeyword = viewModel::addCustomKeyword,
+                onRemoveKeyword = viewModel::removeCustomKeyword,
+                onAddDialogRequested = viewModel::onAddKeywordDialogRequested,
+                onAddDialogDismissed = viewModel::onAddKeywordDialogDismissed,
+            )
 
             // Appearance
             Column {
