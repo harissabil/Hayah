@@ -127,6 +127,10 @@ The app requires these permissions at runtime:
 | Auth | AppAuth (OAuth 2.0 + PKCE) |
 | AI | Firebase AI Logic (Gemini) |
 
+## Roadmap
+
+- **Quran MCP Integration** — Integrate [mcp.quran.ai](https://mcp.quran.ai) so the AI can retrieve verses via tool calls rather than relying on training data alone, improving recommendation accuracy and reducing hallucinations.
+
 ## License
 
 See [LICENSE](LICENSE) for details.
