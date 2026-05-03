@@ -6,6 +6,13 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import id.harissabil.hayah.data.settings.KEY_CUSTOM_KEYWORDS
+import id.harissabil.hayah.data.settings.hayahSettingsDataStore
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -35,6 +42,8 @@ class HayahAccessibilityService :
     }
 
     private val orchestrator: ReminderOrchestrator by inject()
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private var customKeywords: Set<String> = emptySet()
     private var lastScanTime = 0L
     private val recentKeywordTimes = mutableMapOf<String, Long>()
 
@@ -66,7 +75,8 @@ class HayahAccessibilityService :
 
         // Scan for trigger keywords
         val lowerText = combinedText.lowercase()
-        for (keyword in TriggerKeywords.ISLAMIC_KEYWORDS) {
+        val allKeywords = TriggerKeywords.ISLAMIC_KEYWORDS + customKeywords
+        for (keyword in allKeywords) {
             if (!lowerText.contains(keyword)) continue
 
             val lastSeen = recentKeywordTimes[keyword] ?: 0L
@@ -108,7 +118,18 @@ class HayahAccessibilityService :
 
         serviceInfo = info
 
+        serviceScope.launch {
+            applicationContext.hayahSettingsDataStore.data.collect { prefs ->
+                customKeywords = prefs[KEY_CUSTOM_KEYWORDS] ?: emptySet()
+            }
+        }
+
         Log.d(TAG, "Accessibility service connected")
+    }
+
+    override fun onDestroy() {
+        serviceScope.cancel()
+        super.onDestroy()
     }
 
     private fun extractText(event: AccessibilityEvent): String {
