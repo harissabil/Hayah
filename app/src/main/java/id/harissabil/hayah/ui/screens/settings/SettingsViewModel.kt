@@ -16,6 +16,7 @@ import id.harissabil.hayah.data.api.QuranApiService
 import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.model.RecitationItem
+import id.harissabil.hayah.data.settings.KEY_CUSTOM_KEYWORDS
 import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.HayahAccessibilityService
 import id.harissabil.hayah.service.executeWithNetworkRetry
@@ -46,6 +47,8 @@ data class SettingsUiState(
     val isRecitersLoading: Boolean = false,
     val reciterOptions: List<ReciterOption> = emptyList(),
     val reciterError: String? = null,
+    val customKeywords: Set<String> = emptySet(),
+    val isAddKeywordDialogOpen: Boolean = false,
 )
 
 class SettingsViewModel(
@@ -91,6 +94,7 @@ class SettingsViewModel(
                         reciterId = prefs[KEY_RECITER_ID] ?: 7,
                         reciterName = prefs[KEY_RECITER_NAME] ?: "Mishary Rashid Alafasy",
                         isAccessibilityEnabled = isAccessibilityServiceEnabled(),
+                        customKeywords = prefs[KEY_CUSTOM_KEYWORDS] ?: emptySet(),
                     )
                 }
             }
@@ -162,6 +166,32 @@ class SettingsViewModel(
                 it[KEY_RECITER_ID] = id
                 it[KEY_RECITER_NAME] = name
             }
+        }
+    }
+
+    fun onAddKeywordDialogRequested() {
+        _uiState.update { it.copy(isAddKeywordDialogOpen = true) }
+    }
+
+    fun onAddKeywordDialogDismissed() {
+        _uiState.update { it.copy(isAddKeywordDialogOpen = false) }
+    }
+
+    fun addCustomKeyword(keyword: String) {
+        val trimmed = keyword.trim().lowercase()
+        if (trimmed.isBlank()) return
+        val updated = _uiState.value.customKeywords + trimmed
+        _uiState.update { it.copy(customKeywords = updated, isAddKeywordDialogOpen = false) }
+        viewModelScope.launch {
+            context.hayahSettingsDataStore.edit { it[KEY_CUSTOM_KEYWORDS] = updated }
+        }
+    }
+
+    fun removeCustomKeyword(keyword: String) {
+        val updated = _uiState.value.customKeywords - keyword
+        _uiState.update { it.copy(customKeywords = updated) }
+        viewModelScope.launch {
+            context.hayahSettingsDataStore.edit { it[KEY_CUSTOM_KEYWORDS] = updated }
         }
     }
 
