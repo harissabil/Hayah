@@ -54,9 +54,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import id.harissabil.hayah.R
+import id.harissabil.hayah.data.settings.KEY_DISCLOSURE_ACCEPTED
+import id.harissabil.hayah.data.settings.KEY_DISCLOSURE_DECLINED
 import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.ActivityRecognitionManager
 import id.harissabil.hayah.service.HayahAccessibilityService
+import id.harissabil.hayah.ui.screens.home.components.AccessibilityDisclosureDialog
 import id.harissabil.hayah.ui.screens.home.components.AccessibilityTutorialDialog
 import id.harissabil.hayah.ui.screens.home.components.InstantReflectionButton
 import id.harissabil.hayah.ui.screens.home.components.InstantReflectionDialog
@@ -81,6 +84,9 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
         remember {
             booleanPreferencesKey("accessibility_tutorial_shown_once")
         }
+
+    val showAccessibilityDisclosureDialog = remember { mutableStateOf(false) }
+    val hasEvaluatedDisclosure = remember { mutableStateOf(false) }
 
     val activityRecognitionManager: ActivityRecognitionManager = koinInject()
 
@@ -112,6 +118,21 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
         }
     }
 
+    suspend fun maybeShowDisclosureOnce() {
+        if (hasEvaluatedDisclosure.value) return
+        hasEvaluatedDisclosure.value = true
+
+        val prefs = context.hayahSettingsDataStore.data.first()
+        val accepted = prefs[KEY_DISCLOSURE_ACCEPTED] ?: false
+        val declined = prefs[KEY_DISCLOSURE_DECLINED] ?: false
+
+        when {
+            accepted -> maybeShowAccessibilityTutorialOnce()
+            declined -> { /* User declined, do not request accessibility service */ }
+            else -> showAccessibilityDisclosureDialog.value = true
+        }
+    }
+
     // 1. Set up the Compose Permission Launcher
     val permissionLauncher =
         rememberLauncherForActivityResult(
@@ -122,7 +143,7 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
                 activityRecognitionManager.startTracking()
             }
             coroutineScope.launch {
-                maybeShowAccessibilityTutorialOnce()
+                maybeShowDisclosureOnce()
             }
         }
 
@@ -153,7 +174,7 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
         } else {
             // All permissions already granted
             activityRecognitionManager.startTracking()
-            maybeShowAccessibilityTutorialOnce()
+            maybeShowDisclosureOnce()
         }
     }
 
@@ -178,6 +199,24 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
             entry = uiState.newlyGeneratedEntry!!,
             onDismiss = {
                 viewModel.dismissNewlyGeneratedEntry()
+            },
+        )
+    }
+
+    if (showAccessibilityDisclosureDialog.value) {
+        AccessibilityDisclosureDialog(
+            onAccept = {
+                showAccessibilityDisclosureDialog.value = false
+                coroutineScope.launch {
+                    context.hayahSettingsDataStore.edit { it[KEY_DISCLOSURE_ACCEPTED] = true }
+                    maybeShowAccessibilityTutorialOnce()
+                }
+            },
+            onDecline = {
+                showAccessibilityDisclosureDialog.value = false
+                coroutineScope.launch {
+                    context.hayahSettingsDataStore.edit { it[KEY_DISCLOSURE_DECLINED] = true }
+                }
             },
         )
     }
