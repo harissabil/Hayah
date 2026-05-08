@@ -34,6 +34,7 @@
 # AI response models parsed with Gson in VerseRecommendationService.
 -keep class id.harissabil.hayah.data.ai.VerseRecommendationService$ReflectionResult { *; }
 -keep class id.harissabil.hayah.data.ai.VerseRecommendationService$ReflectionItem { *; }
+-keep class id.harissabil.hayah.data.ai.** { *; }
 
 # MCP Kotlin SDK and Ktor HTTP client used for MCP/AI calls.
 -keep class io.modelcontextprotocol.** { *; }

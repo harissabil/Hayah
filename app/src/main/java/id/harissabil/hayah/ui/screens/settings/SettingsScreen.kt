@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import id.harissabil.hayah.BuildConfig
 import id.harissabil.hayah.ui.screens.settings.components.AppearancePicker
 import id.harissabil.hayah.ui.screens.settings.components.MyKeywordsSection
 import id.harissabil.hayah.ui.screens.settings.components.PermissionRow
@@ -592,7 +593,7 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
                 Text(
-                    "Hayah v0.0.1",
+                    "Hayah v${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
