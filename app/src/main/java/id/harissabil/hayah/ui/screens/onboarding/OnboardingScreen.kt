@@ -1,5 +1,7 @@
 package id.harissabil.hayah.ui.screens.onboarding
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.Icon
@@ -31,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -54,6 +58,7 @@ fun OnboardingScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val pagerState = rememberPagerState(pageCount = { uiState.pages.size })
+    val context = LocalContext.current
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.collect { viewModel.onPageChanged(it) }
@@ -162,25 +167,43 @@ fun OnboardingScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    text =
-                        buildAnnotatedString {
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
-                                append("By continuing, you agree to our ")
-                            }
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                                append("Terms of Service")
-                            }
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
-                                append(" & ")
-                            }
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                                append("Privacy Policy")
-                            }
-                        },
-                    style = MaterialTheme.typography.labelSmall,
-                    textAlign = TextAlign.Center,
+
+                // TODO: replace these URLs with your actual hosted pages before publishing
+                val tosUrl = "https://github.com/harissabil/Hayah/blob/develop/docs/terms-of-service.md"
+                val privacyUrl = "https://github.com/harissabil/Hayah/blob/develop/docs/privacy-policy.md"
+                val legalText =
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
+                            append("By continuing, you agree to our ")
+                        }
+                        pushStringAnnotation(tag = "TOS", annotation = tosUrl)
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                            append("Terms of Service")
+                        }
+                        pop()
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.outline)) {
+                            append(" & ")
+                        }
+                        pushStringAnnotation(tag = "PRIVACY", annotation = privacyUrl)
+                        withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                            append("Privacy Policy")
+                        }
+                        pop()
+                    }
+                ClickableText(
+                    text = legalText,
+                    style = MaterialTheme.typography.labelSmall.copy(textAlign = TextAlign.Center),
                     modifier = Modifier.fillMaxWidth(),
+                    onClick = { offset ->
+                        legalText.getStringAnnotations(tag = "TOS", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it.item)))
+                            }
+                        legalText.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                            .firstOrNull()?.let {
+                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it.item)))
+                            }
+                    },
                 )
                 Spacer(modifier = Modifier.height(40.dp))
             }
