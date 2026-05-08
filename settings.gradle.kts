@@ -24,4 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Hayah"
 include(":app")
- 
+

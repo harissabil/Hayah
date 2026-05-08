@@ -11,3 +11,5 @@ HAYAH_REVOKE_PROXY_URL=https://your-worker-domain/revoke
 HAYAH_API_BASE_PROD=https://apis.quran.foundation/
 HAYAH_API_BASE_TEST=https://apis-prelive.quran.foundation/
 HAYAH_REDIRECT_URI=id.harissabil.hayah://callback
+# MCP Quran server URL — optional, defaults to https://mcp.quran.ai/
+HAYAH_MCP_QURAN_URL=https://mcp.quran.ai/

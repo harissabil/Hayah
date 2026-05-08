@@ -31,10 +31,15 @@
 -keep class id.harissabil.hayah.data.model.** { *; }
 -keep class id.harissabil.hayah.ui.screens.settings.ReciterOption { *; }
 
-# Internal Firebase AI response models parsed with Gson in VerseRecommendationService.
--keep class id.harissabil.hayah.data.ai.VerseRecommendationService$VerseRecommendation { *; }
+# AI response models parsed with Gson in VerseRecommendationService.
 -keep class id.harissabil.hayah.data.ai.VerseRecommendationService$ReflectionResult { *; }
 -keep class id.harissabil.hayah.data.ai.VerseRecommendationService$ReflectionItem { *; }
+
+# MCP Kotlin SDK and Ktor HTTP client used for MCP/AI calls.
+-keep class io.modelcontextprotocol.** { *; }
+-keep class io.ktor.** { *; }
+-dontwarn io.modelcontextprotocol.**
+-dontwarn io.ktor.**
 
 # Preserve fields annotated with @SerializedName when obfuscating other classes.
 -keepclassmembers,allowobfuscation class * {
