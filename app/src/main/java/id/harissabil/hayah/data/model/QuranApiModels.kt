@@ -16,6 +16,24 @@ data class VerseDetail(
     @SerializedName("text_uthmani") val textUthmani: String? = null,
     @SerializedName("page_number") val pageNumber: Int? = null,
     val translations: List<TranslationItem>? = null,
+    val tafsirs: List<TafsirItem>? = null,
+)
+
+data class TafsirItem(
+    val id: Int? = null,
+    @SerializedName("language_name") val languageName: String? = null,
+    val name: String? = null,
+    val text: String? = null,
+)
+
+data class TafsirByAyahResponse(
+    val tafsir: TafsirByAyahData? = null,
+)
+
+data class TafsirByAyahData(
+    @SerializedName("resource_id") val resourceId: Int? = null,
+    @SerializedName("resource_name") val resourceName: String? = null,
+    val text: String? = null,
 )
 
 data class TranslationItem(

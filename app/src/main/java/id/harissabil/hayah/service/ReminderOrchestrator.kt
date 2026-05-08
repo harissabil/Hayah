@@ -241,6 +241,7 @@ class ReminderOrchestrator(
 
         // Step 2: Fetch verse data from Quran.com API
         val versesWithTranslations = mutableListOf<Triple<String, String, CachedVerse>>()
+        val tafsirMap = mutableMapOf<String, String>()
 
         for (verseKey in verseKeys) {
             try {
@@ -266,6 +267,11 @@ class ReminderOrchestrator(
                         ?.replace(Regex("<sup[^>]*>.*?</sup>"), "")
                         ?.replace(Regex("<[^>]*>"), "") // strip HTML tags
                         ?: ""
+
+                detail.tafsirs?.firstOrNull()?.text
+                    ?.replace(Regex("<[^>]*>"), "")
+                    ?.take(1500)
+                    ?.let { tafsirMap[verseKey] = it }
 
                 val surahName = surahNames?.get(chapterId) ?: "Surah $chapterId"
 
@@ -323,7 +329,11 @@ class ReminderOrchestrator(
             versesWithTranslations.map { (key, translation, _) ->
                 key to translation
             }
-        val reflections = verseRecommendationService.generateReflections(keyword, translationPairs)
+        val reflections = verseRecommendationService.generateReflections(
+            keyword = keyword,
+            versesWithTranslations = translationPairs,
+            tafsir = tafsirMap.ifEmpty { null },
+        )
 
         // Step 4: Merge reflections into verses
         val finalVerses =
