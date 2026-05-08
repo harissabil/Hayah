@@ -5,6 +5,7 @@ import id.harissabil.hayah.data.model.ActivityDaysResponse
 import id.harissabil.hayah.data.model.AudioRecitationResponse
 import id.harissabil.hayah.data.model.ChaptersResponse
 import id.harissabil.hayah.data.model.RecitationsResponse
+import id.harissabil.hayah.data.model.TafsirByAyahResponse
 import id.harissabil.hayah.data.model.UserProfileResponse
 import id.harissabil.hayah.data.model.VerseByKeyResponse
 import retrofit2.http.Body
@@ -29,7 +30,8 @@ interface QuranApiService {
         @Header("x-auth-token") accessToken: String,
         @Header("x-client-id") clientId: String,
         @Path("verse_key") verseKey: String,
-        @Query("translations") translations: String = "20", // Sahih International
+        @Query("translations") translations: String = "20",
+        @Query("tafsirs") tafsirs: String = "169", // ibn kathir
         @Query("fields") fields: String = "text_uthmani",
         @Query("language") language: String = "en",
     ): VerseByKeyResponse
@@ -42,6 +44,14 @@ interface QuranApiService {
         @Query("fields") fields: String = "text_uthmani",
         @Query("language") language: String = "en",
     ): VerseByKeyResponse
+
+    @GET("content/api/v4/tafsirs/{resource_id}/by_ayah/{ayah_key}")
+    suspend fun getTafsirForAyah(
+        @Header("x-auth-token") accessToken: String,
+        @Header("x-client-id") clientId: String,
+        @Path("resource_id") resourceId: Int,
+        @Path("ayah_key") ayahKey: String,
+    ): TafsirByAyahResponse
 
     @GET("content/api/v4/recitations/{recitation_id}/by_ayah/{verse_key}")
     suspend fun getAudioForVerse(

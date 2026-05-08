@@ -16,8 +16,10 @@ okhttp = "4.12.0"
 datastore = "1.1.1"
 coil = "3.0.4"
 koin = "4.0.2"
+firebaseAi = "17.12.0"
 googleGmsGoogleServices = "4.4.4"
-firebaseAi = "17.10.1"
+mcpKotlinSdk = "0.12.0"
+ktor3 = "3.4.3"
 room = "2.7.1"
 ksp = "2.2.10-2.0.2"
 playServicesLocation = "21.3.0"
@@ -51,6 +53,8 @@ coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", versi
 koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
 koin-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
 firebase-ai = { group = "com.google.firebase", name = "firebase-ai", version.ref = "firebaseAi" }
+mcp-kotlin-sdk-client = { group = "io.modelcontextprotocol", name = "kotlin-sdk-client", version.ref = "mcpKotlinSdk" }
+ktor-client-okhttp = { group = "io.ktor", name = "ktor-client-okhttp", version.ref = "ktor3" }
 room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }

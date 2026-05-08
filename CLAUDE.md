@@ -40,6 +40,7 @@ HAYAH_REVOKE_PROXY_URL=https://<your-worker>/revoke
 HAYAH_API_BASE_PROD=https://apis.quran.foundation/
 HAYAH_API_BASE_TEST=https://apis-prelive.quran.foundation/
 HAYAH_REDIRECT_URI=id.harissabil.hayah://callback
+HAYAH_MCP_QURAN_URL=https://mcp.quran.ai
 ```
 
 Also place `google-services.json` from Firebase Console into `app/google-services.json`.
@@ -53,7 +54,7 @@ Also place `google-services.json` from Firebase Console into `app/google-service
 | Package | Role |
 |---|---|
 | `data/auth` | OAuth 2.0 via AppAuth + Cloudflare Worker proxy; `AuthRepository` manages the full token lifecycle |
-| `data/ai` | `VerseRecommendationService` — calls Firebase AI Logic (Gemini) to get verse keys and generate reflections |
+| `data/ai` | `VerseRecommendationService` — connects to `mcp.quran.ai` via MCP Kotlin SDK (Streamable HTTP), exposes MCP tools as Gemini `FunctionDeclaration`s, runs a function-call loop to get real verse keys, then generates Ibn Kathir–grounded reflections with a separate structured-output model |
 | `data/api` | Retrofit `QuranApiService` talking to Quran Foundation REST API |
 | `data/db` | Room database (`HayahDatabase`) with three tables: `keyword_cache`, `journal_entries`, `read_history` |
 | `data/settings` | Single `DataStore<Preferences>` instance (`hayahSettingsDataStore` extension on `Context`) |
@@ -63,9 +64,24 @@ Also place `google-services.json` from Firebase Console into `app/google-service
 
 ### Core reminder pipeline
 
-`HayahAccessibilityService` / `ActivityTransitionReceiver` → `ReminderOrchestrator.onKeywordDetected()` → dedup/cooldown/threshold checks → `VerseRecommendationService` (Gemini) → `QuranApiService` (verse + audio) → `NotificationHelper` → `JournalEntryDao` (persist).
+`HayahAccessibilityService` / `ActivityTransitionReceiver` → `ReminderOrchestrator.onKeywordDetected()` → dedup/cooldown/threshold checks → `VerseRecommendationService.recommendVerses()` (MCP tool-call loop via Gemini) → `QuranApiService` (verse detail + tafsir + audio) → `VerseRecommendationService.generateReflections()` (structured JSON, tafsir-grounded) → `NotificationHelper` → `JournalEntryDao` (persist).
 
 Caching: `KeywordCacheDao` stores up to 5 verses per keyword (JSON in `KeywordCacheEntity.versesJson`); `lastShownIndex` rotates through them on subsequent triggers to avoid repeating the same verse.
+
+#### VerseRecommendationService internals
+
+`recommendVerses(keyword)`:
+1. Opens a Streamable HTTP connection to `mcp.quran.ai` via MCP Kotlin SDK
+2. Calls `listTools()` and maps each MCP tool to a Firebase AI `FunctionDeclaration` (required vs optional params)
+3. Starts a Gemini chat and loops: sends tool results back as `FunctionResponsePart` until no more `functionCalls` in the response
+4. Parses the final JSON array of verse keys (e.g. `["2:255", "67:15"]`)
+
+`generateReflections(keyword, versesWithTranslations, tafsir?)`:
+- Uses a lazy `reflectionModel` with `responseSchema` (structured JSON output)
+- If `tafsir` map is provided (Ibn Kathir excerpts keyed by verse key), appended to each verse block in the prompt
+- Returns `Map<verseKey, reflectionText>`
+
+Tafsir source: Quran Foundation API `GET /content/api/v4/tafsirs/169/by_ayah/{ayah_key}` (resource 169 = Ibn Kathir Abridged, English). In `ReminderOrchestrator` tafsir comes from the `?tafsirs=169` param on `getVerseByKey`; in `HomeViewModel` (instant reflection) it is fetched separately via `getTafsirForAyah` because `getRandomVerse` has an API-side bug with that param.
 
 All API calls inside the pipeline use `executeWithNetworkRetry()` (`service/ApiRetryPolicy.kt`) — exponential backoff, retries on IO errors, 5xx, and 429.
 

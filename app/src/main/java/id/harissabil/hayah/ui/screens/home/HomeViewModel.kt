@@ -179,6 +179,7 @@ class HomeViewModel(
         viewModelScope.launch {
             try {
                 val accessToken = authRepository.getValidAccessToken()
+                Log.d(TAG, "Access token: $accessToken")
                 if (accessToken == null) {
                     _uiState.update { it.copy(isInstantReflectionLoading = false, instantReflectionError = "Authentication required.") }
                     return@launch
@@ -237,10 +238,12 @@ class HomeViewModel(
 
                         val reflectionDeferred =
                             async {
+                                val tafsirText = fetchTafsir(accessToken, verseKey)
                                 generateTimedReflection(
                                     keyword = keyword,
                                     verseKey = verseKey,
                                     translation = translation,
+                                    tafsir = tafsirText?.let { mapOf(verseKey to it) },
                                 )
                             }
 
@@ -361,6 +364,7 @@ class HomeViewModel(
         keyword: String,
         verseKey: String,
         translation: String,
+        tafsir: Map<String, String>? = null,
     ): String {
         val fallback =
             "A reminder from the Quran about $keyword — reflect on this verse and its meaning in your daily life."
@@ -369,6 +373,7 @@ class HomeViewModel(
                 verseRecommendationService.generateReflections(
                     keyword = keyword,
                     versesWithTranslations = listOf(verseKey to translation),
+                    tafsir = tafsir,
                 )
             reflectionMap[verseKey] ?: fallback
         } catch (e: Exception) {
@@ -376,6 +381,30 @@ class HomeViewModel(
             fallback
         }
     }
+
+    private suspend fun fetchTafsir(
+        accessToken: String,
+        verseKey: String,
+        resourceId: Int = 169,
+    ): String? =
+        try {
+            val response =
+                executeWithNetworkRetry(maxAttempts = OPTIONAL_API_MAX_ATTEMPTS) {
+                    quranApiService.getTafsirForAyah(
+                        accessToken = accessToken,
+                        clientId = QuranOAuthConfig.clientId,
+                        resourceId = resourceId,
+                        ayahKey = verseKey,
+                    )
+                }
+            response.tafsir
+                ?.text
+                ?.replace(Regex("<[^>]*>"), "")
+                ?.take(1500)
+        } catch (e: Exception) {
+            Log.w(TAG, "Tafsir fetch failed for $verseKey", e)
+            null
+        }
 
     private fun parseVerseKey(verseKey: String): Pair<Int, Int>? {
         val parts = verseKey.split(":")

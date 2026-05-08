@@ -61,6 +61,11 @@ android {
         buildConfigField("String", "OAUTH_API_BASE_PROD", quoted(requiredConfig("HAYAH_API_BASE_PROD")))
         buildConfigField("String", "OAUTH_API_BASE_TEST", quoted(requiredConfig("HAYAH_API_BASE_TEST")))
         buildConfigField("String", "OAUTH_REDIRECT_URI", quoted(requiredConfig("HAYAH_REDIRECT_URI")))
+        buildConfigField(
+            "String",
+            "MCP_QURAN_URL",
+            quoted(localProperties.getProperty("HAYAH_MCP_QURAN_URL") ?: "https://mcp.quran.ai/"),
+        )
     }
 
     buildTypes {
@@ -125,8 +130,10 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.compose)
 
-    // Firebase AI
+    // AI — Firebase AI Logic + MCP Kotlin SDK
     implementation(libs.firebase.ai)
+    implementation(libs.mcp.kotlin.sdk.client)
+    implementation(libs.ktor.client.okhttp)
 
     // Activity Recognition
     implementation(libs.play.services.location)
