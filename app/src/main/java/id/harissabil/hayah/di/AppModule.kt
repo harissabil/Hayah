@@ -1,6 +1,7 @@
 package id.harissabil.hayah.di
 
 import androidx.room.Room
+import id.harissabil.hayah.BuildConfig
 import id.harissabil.hayah.data.ai.VerseRecommendationService
 import id.harissabil.hayah.data.api.RetrofitClient
 import id.harissabil.hayah.data.auth.AuthRepository
@@ -49,7 +50,7 @@ val appModule =
         }
 
         // ── AI ────────────────────────────────────
-        single { VerseRecommendationService() }
+        single { VerseRecommendationService(BuildConfig.MCP_QURAN_URL) }
 
         // ── Services ─────────────────────────────
         single { NotificationHelper(androidContext()) }
