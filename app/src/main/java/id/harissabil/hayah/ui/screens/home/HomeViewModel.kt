@@ -397,7 +397,8 @@ class HomeViewModel(
                         ayahKey = verseKey,
                     )
                 }
-            response.tafsir?.text
+            response.tafsir
+                ?.text
                 ?.replace(Regex("<[^>]*>"), "")
                 ?.take(1500)
         } catch (e: Exception) {

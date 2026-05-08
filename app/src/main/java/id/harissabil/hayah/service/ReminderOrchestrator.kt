@@ -268,7 +268,9 @@ class ReminderOrchestrator(
                         ?.replace(Regex("<[^>]*>"), "") // strip HTML tags
                         ?: ""
 
-                detail.tafsirs?.firstOrNull()?.text
+                detail.tafsirs
+                    ?.firstOrNull()
+                    ?.text
                     ?.replace(Regex("<[^>]*>"), "")
                     ?.take(1500)
                     ?.let { tafsirMap[verseKey] = it }
@@ -329,11 +331,12 @@ class ReminderOrchestrator(
             versesWithTranslations.map { (key, translation, _) ->
                 key to translation
             }
-        val reflections = verseRecommendationService.generateReflections(
-            keyword = keyword,
-            versesWithTranslations = translationPairs,
-            tafsir = tafsirMap.ifEmpty { null },
-        )
+        val reflections =
+            verseRecommendationService.generateReflections(
+                keyword = keyword,
+                versesWithTranslations = translationPairs,
+                tafsir = tafsirMap.ifEmpty { null },
+            )
 
         // Step 4: Merge reflections into verses
         val finalVerses =

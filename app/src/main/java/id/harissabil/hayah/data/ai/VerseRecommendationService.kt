@@ -68,8 +68,8 @@ class VerseRecommendationService(
      * Returns up to 5 Quran verse keys (e.g. "2:156") relevant to [keyword].
      * Connects to mcp.quran.ai via Streamable HTTP so Firebase AI can call real search tools.
      */
-    suspend fun recommendVerses(keyword: String): List<String> {
-        return try {
+    suspend fun recommendVerses(keyword: String): List<String> =
+        try {
             val mcpClient = Client(clientInfo = Implementation("hayah", "1.0.0"))
             val transport = StreamableHttpClientTransport(client = httpClient, url = mcpQuranUrl)
             mcpClient.connect(transport)
@@ -153,7 +153,6 @@ class VerseRecommendationService(
             Log.e(TAG, "Failed to recommend verses for '$keyword'", e)
             emptyList()
         }
-    }
 
     /**
      * Generates brief Islamic reflections for each verse, grounded in the actual translation text.
