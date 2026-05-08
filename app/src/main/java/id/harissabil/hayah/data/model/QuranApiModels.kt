@@ -26,16 +26,6 @@ data class TafsirItem(
     val text: String? = null,
 )
 
-data class TafsirByAyahResponse(
-    val tafsir: TafsirByAyahData? = null,
-)
-
-data class TafsirByAyahData(
-    @SerializedName("resource_id") val resourceId: Int? = null,
-    @SerializedName("resource_name") val resourceName: String? = null,
-    val text: String? = null,
-)
-
 data class TranslationItem(
     val id: Int? = null,
     @SerializedName("resource_id") val resourceId: Int? = null,

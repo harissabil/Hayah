@@ -81,7 +81,7 @@ Caching: `KeywordCacheDao` stores up to 5 verses per keyword (JSON in `KeywordCa
 - If `tafsir` map is provided (Ibn Kathir excerpts keyed by verse key), appended to each verse block in the prompt
 - Returns `Map<verseKey, reflectionText>`
 
-Tafsir source: Quran Foundation API `GET /content/api/v4/tafsirs/169/by_ayah/{ayah_key}` (resource 169 = Ibn Kathir Abridged, English). In `ReminderOrchestrator` tafsir comes from the `?tafsirs=169` param on `getVerseByKey`; in `HomeViewModel` (instant reflection) it is fetched separately via `getTafsirForAyah` because `getRandomVerse` has an API-side bug with that param.
+Tafsir source: resource 169 = Ibn Kathir Abridged, English. Both `ReminderOrchestrator` and `HomeViewModel` receive tafsir via the `?tafsirs=169` query param on their respective verse fetch endpoints (`getVerseByKey` and `getRandomVerse`).
 
 All API calls inside the pipeline use `executeWithNetworkRetry()` (`service/ApiRetryPolicy.kt`) — exponential backoff, retries on IO errors, 5xx, and 429.
 

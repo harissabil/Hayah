@@ -216,6 +216,10 @@ class HomeViewModel(
                     rawTranslation
                         .replace(Regex("<sup[^>]*>.*?</sup>"), "")
                         .replace(Regex("<[^>]*>"), "")
+                val tafsirText =
+                    detail.tafsirs?.firstOrNull()?.text
+                        ?.replace(Regex("<[^>]*>"), "")
+                        ?.take(1500)
 
                 val prefs = context.hayahSettingsDataStore.data.first()
                 val reciterId = prefs[ReminderOrchestrator.KEY_RECITER_ID] ?: 7 // Mishary Rashid Alafasy by default
@@ -238,7 +242,6 @@ class HomeViewModel(
 
                         val reflectionDeferred =
                             async {
-                                val tafsirText = fetchTafsir(accessToken, verseKey)
                                 generateTimedReflection(
                                     keyword = keyword,
                                     verseKey = verseKey,
@@ -381,30 +384,6 @@ class HomeViewModel(
             fallback
         }
     }
-
-    private suspend fun fetchTafsir(
-        accessToken: String,
-        verseKey: String,
-        resourceId: Int = 169,
-    ): String? =
-        try {
-            val response =
-                executeWithNetworkRetry(maxAttempts = OPTIONAL_API_MAX_ATTEMPTS) {
-                    quranApiService.getTafsirForAyah(
-                        accessToken = accessToken,
-                        clientId = QuranOAuthConfig.clientId,
-                        resourceId = resourceId,
-                        ayahKey = verseKey,
-                    )
-                }
-            response.tafsir
-                ?.text
-                ?.replace(Regex("<[^>]*>"), "")
-                ?.take(1500)
-        } catch (e: Exception) {
-            Log.w(TAG, "Tafsir fetch failed for $verseKey", e)
-            null
-        }
 
     private fun parseVerseKey(verseKey: String): Pair<Int, Int>? {
         val parts = verseKey.split(":")
