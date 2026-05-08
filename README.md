@@ -31,7 +31,7 @@ Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic 
 
 - **Context-Aware Reminders**: Detects keywords from notifications and screen content via accessibility service, delivers relevant Quranic verses
 - **Activity Recognition**: Responds to physical activities (walking, driving, etc.) with appropriate spiritual reminders
-- **MCP-Grounded Verse Recommendations**: Connects to [mcp.quran.ai](https://mcp.quran.ai) via Model Context Protocol so Gemini retrieves real verses through tool calls — no hallucinated references
+- **MCP-Grounded Verse Recommendations**: Connects to [mcp.quran.ai](https://mcp.quran.ai) via Model Context Protocol so Gemini retrieves real verses through tool calls to reduce hallucinated references
 - **AI-Powered Reflections**: Uses Firebase AI Logic (Gemini) to generate short reflections grounded in verse translation and Ibn Kathir tafsir
 - **Quran Reader**: Full-page reading with Uthmani Arabic and English translation, tracks reading progress
 - **Journal**: History of all reminders with verse details, reflections, and audio playback
