@@ -50,13 +50,18 @@ class HayahAccessibilityService :
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         event ?: return
 
-        val now = System.currentTimeMillis()
-        if (now - lastScanTime < SCAN_COOLDOWN_MS) return
-
         val packageName = event.packageName?.toString()
         if (packageName in EXCLUDED_PACKAGES) {
             return
         }
+
+        val rootNode = rootInActiveWindow ?: return
+        if (rootNode.packageName == null || rootNode.packageName in EXCLUDED_PACKAGES) {
+            return
+        }
+
+        val now = System.currentTimeMillis()
+        if (now - lastScanTime < SCAN_COOLDOWN_MS) return
 
 //        val text = extractText(event)
 //        if (text.isBlank()) return
