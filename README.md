@@ -31,7 +31,8 @@ Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic 
 
 - **Context-Aware Reminders**: Detects keywords from notifications and screen content via accessibility service, delivers relevant Quranic verses
 - **Activity Recognition**: Responds to physical activities (walking, driving, etc.) with appropriate spiritual reminders
-- **AI-Powered Reflections**: Uses Firebase AI Logic (Gemini) to generate short reflections grounded in verse text
+- **MCP-Grounded Verse Recommendations**: Connects to [mcp.quran.ai](https://mcp.quran.ai) via Model Context Protocol so Gemini retrieves real verses through tool calls — no hallucinated references
+- **AI-Powered Reflections**: Uses Firebase AI Logic (Gemini) to generate short reflections grounded in verse translation and Ibn Kathir tafsir
 - **Quran Reader**: Full-page reading with Uthmani Arabic and English translation, tracks reading progress
 - **Journal**: History of all reminders with verse details, reflections, and audio playback
 - **Quran.com Integration**: OAuth authentication, verse fetching, audio recitations, activity reporting
@@ -99,6 +100,7 @@ Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic 
    HAYAH_API_BASE_PROD=https://apis.quran.foundation/
    HAYAH_API_BASE_TEST=https://apis-prelive.quran.foundation/
    HAYAH_REDIRECT_URI=id.harissabil.hayah://callback
+   HAYAH_MCP_QURAN_URL=https://mcp.quran.ai
    ```
 
 4. **Build and Run**
@@ -117,19 +119,16 @@ The app requires these permissions at runtime:
 
 ## Architecture
 
-| Layer | Technology |
-|-------|------------|
-| UI | Jetpack Compose, Material 3 |
-| Architecture | MVVM |
-| DI | Koin |
-| Networking | Retrofit, OkHttp |
-| Persistence | Room, DataStore |
-| Auth | AppAuth (OAuth 2.0 + PKCE) |
-| AI | Firebase AI Logic (Gemini) |
-
-## Roadmap
-
-- **Quran MCP Integration** — Integrate [mcp.quran.ai](https://mcp.quran.ai) so the AI can retrieve verses via tool calls rather than relying on training data alone, improving recommendation accuracy and reducing hallucinations.
+| Layer | Technology                                              |
+|-------|---------------------------------------------------------|
+| UI | Jetpack Compose, Material 3                             |
+| Architecture | MVVM                                                    |
+| DI | Koin                                                    |
+| Networking | Retrofit, OkHttp                                        |
+| Persistence | Room, DataStore                                         |
+| Auth | AppAuth (OAuth 2.0 + PKCE)                              |
+| AI | Firebase AI Logic (Gemini)                              |
+| MCP Client | [MCP Kotlin SDK](https://github.com/modelcontextprotocol/kotlin-sdk) |
 
 ## License
 
