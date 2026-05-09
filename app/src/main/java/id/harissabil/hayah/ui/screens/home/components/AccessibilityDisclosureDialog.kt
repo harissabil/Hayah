@@ -89,7 +89,7 @@ fun AccessibilityDisclosureDialog(
                 ) {
                     OutlinedButton(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = onDecline
+                        onClick = onDecline,
                     ) {
                         Text("No Thanks")
                     }
@@ -98,7 +98,7 @@ fun AccessibilityDisclosureDialog(
 
                     Button(
                         modifier = Modifier.fillMaxWidth(),
-                        onClick = onAccept
+                        onClick = onAccept,
                     ) {
                         Text(
                             text = "I Understand & Accept",
