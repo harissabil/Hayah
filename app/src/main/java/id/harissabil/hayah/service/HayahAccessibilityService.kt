@@ -6,8 +6,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
-import id.harissabil.hayah.data.settings.KEY_CUSTOM_KEYWORDS
-import id.harissabil.hayah.data.settings.hayahSettingsDataStore
+import id.harissabil.hayah.data.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -42,6 +41,7 @@ class HayahAccessibilityService :
     }
 
     private val orchestrator: ReminderOrchestrator by inject()
+    private val settingsRepository: SettingsRepository by inject()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var customKeywords: Set<String> = emptySet()
     private var lastScanTime = 0L
@@ -124,8 +124,8 @@ class HayahAccessibilityService :
         serviceInfo = info
 
         serviceScope.launch {
-            applicationContext.hayahSettingsDataStore.data.collect { prefs ->
-                customKeywords = prefs[KEY_CUSTOM_KEYWORDS] ?: emptySet()
+            settingsRepository.settingsFlow.collect { prefs ->
+                customKeywords = prefs[SettingsRepository.KEY_CUSTOM_KEYWORDS] ?: emptySet()
             }
         }
 
