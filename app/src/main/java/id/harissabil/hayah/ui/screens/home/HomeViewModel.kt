@@ -1,6 +1,5 @@
 package id.harissabil.hayah.ui.screens.home
 
-import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,9 +10,8 @@ import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.db.dao.JournalEntryDao
 import id.harissabil.hayah.data.db.entity.JournalEntryEntity
 import id.harissabil.hayah.data.model.UserProfileResponse
-import id.harissabil.hayah.data.settings.hayahSettingsDataStore
+import id.harissabil.hayah.data.settings.SettingsRepository
 import id.harissabil.hayah.service.NotificationHelper
-import id.harissabil.hayah.service.ReminderOrchestrator
 import id.harissabil.hayah.service.executeWithNetworkRetry
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -21,7 +19,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -41,11 +38,13 @@ data class HomeUiState(
     val isInstantReflectionLoading: Boolean = false,
     val instantReflectionError: String? = null,
     val newlyGeneratedEntry: JournalEntryEntity? = null,
+    val showDisclosureDialog: Boolean = false,
+    val showTutorialDialog: Boolean = false,
 )
 
 class HomeViewModel(
     private val authRepository: AuthRepository,
-    private val context: Context,
+    private val settingsRepository: SettingsRepository,
     private val journalEntryDao: JournalEntryDao,
     private val quranApiService: QuranApiService,
     private val verseRecommendationService: VerseRecommendationService,
@@ -63,6 +62,7 @@ class HomeViewModel(
 
     private var readCountJob: Job? = null
     private var chapterNameCache: Map<Int, String>? = null
+    private var hasEvaluatedDialogs = false
 
     init {
         viewModelScope.launch {
@@ -172,6 +172,47 @@ class HomeViewModel(
         notificationHelper.stopVerseAudio()
     }
 
+    fun evaluateInitialDialogs(isAccessibilityEnabled: Boolean) {
+        if (hasEvaluatedDialogs) return
+        hasEvaluatedDialogs = true
+        viewModelScope.launch {
+            val accepted = settingsRepository.get(SettingsRepository.KEY_DISCLOSURE_ACCEPTED, false)
+            val declined = settingsRepository.get(SettingsRepository.KEY_DISCLOSURE_DECLINED, false)
+            when {
+                accepted -> maybeShowTutorial(isAccessibilityEnabled)
+                declined -> { /* user declined, respect their choice */ }
+                else -> _uiState.update { it.copy(showDisclosureDialog = true) }
+            }
+        }
+    }
+
+    fun acceptDisclosure(isAccessibilityEnabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.setDisclosureAccepted()
+            _uiState.update { it.copy(showDisclosureDialog = false) }
+            maybeShowTutorial(isAccessibilityEnabled)
+        }
+    }
+
+    fun declineDisclosure() {
+        viewModelScope.launch {
+            settingsRepository.setDisclosureDeclined()
+            _uiState.update { it.copy(showDisclosureDialog = false) }
+        }
+    }
+
+    fun dismissTutorial() {
+        _uiState.update { it.copy(showTutorialDialog = false) }
+    }
+
+    private suspend fun maybeShowTutorial(isAccessibilityEnabled: Boolean) {
+        val tutorialShown = settingsRepository.get(SettingsRepository.KEY_ACCESSIBILITY_TUTORIAL_SHOWN, false)
+        if (!tutorialShown && !isAccessibilityEnabled) {
+            settingsRepository.set(SettingsRepository.KEY_ACCESSIBILITY_TUTORIAL_SHOWN, true)
+            _uiState.update { it.copy(showTutorialDialog = true) }
+        }
+    }
+
     fun generateInstantReflection() {
         if (_uiState.value.isInstantReflectionLoading) return
         _uiState.update { it.copy(isInstantReflectionLoading = true, instantReflectionError = null) }
@@ -217,12 +258,14 @@ class HomeViewModel(
                         .replace(Regex("<sup[^>]*>.*?</sup>"), "")
                         .replace(Regex("<[^>]*>"), "")
                 val tafsirText =
-                    detail.tafsirs?.firstOrNull()?.text
+                    detail.tafsirs
+                        ?.firstOrNull()
+                        ?.text
                         ?.replace(Regex("<[^>]*>"), "")
                         ?.take(1500)
 
-                val prefs = context.hayahSettingsDataStore.data.first()
-                val reciterId = prefs[ReminderOrchestrator.KEY_RECITER_ID] ?: 7 // Mishary Rashid Alafasy by default
+                val reciterId = settingsRepository.get(SettingsRepository.KEY_RECITER_ID, 7)
+                val playAudio = settingsRepository.get(SettingsRepository.KEY_PLAY_AUDIO, true)
 
                 val (surahName, audioUrl, reflectionText) =
                     coroutineScope {
@@ -273,11 +316,10 @@ class HomeViewModel(
                         audioUrl = audioUrl,
                         pageNumber = pageNumber,
                         timestamp = newTimestamp,
-                        isUnread = true, // Marked as unread as per user instructions
+                        isUnread = true,
                     )
                 journalEntryDao.insert(journalEntry)
 
-                val playAudio = prefs[ReminderOrchestrator.KEY_PLAY_AUDIO] ?: true
                 if (playAudio && audioUrl != null) {
                     notificationHelper.playVerseAudio(audioUrl)
                 }

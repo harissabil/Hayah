@@ -36,9 +36,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,14 +47,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import id.harissabil.hayah.R
-import id.harissabil.hayah.data.settings.KEY_DISCLOSURE_ACCEPTED
-import id.harissabil.hayah.data.settings.KEY_DISCLOSURE_DECLINED
-import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.ActivityRecognitionManager
 import id.harissabil.hayah.service.HayahAccessibilityService
 import id.harissabil.hayah.ui.screens.home.components.AccessibilityDisclosureDialog
@@ -66,8 +59,6 @@ import id.harissabil.hayah.ui.screens.home.components.InstantReflectionDialog
 import id.harissabil.hayah.ui.screens.home.components.PeriodSelector
 import id.harissabil.hayah.ui.screens.home.components.SpiritualRing
 import id.harissabil.hayah.ui.theme.CairoFamily
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 
@@ -77,16 +68,6 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val showAccessibilityTutorialDialog = remember { mutableStateOf(false) }
-    val hasEvaluatedAccessibilityTutorial = remember { mutableStateOf(false) }
-    val keyAccessibilityTutorialShown =
-        remember {
-            booleanPreferencesKey("accessibility_tutorial_shown_once")
-        }
-
-    val showAccessibilityDisclosureDialog = remember { mutableStateOf(false) }
-    val hasEvaluatedDisclosure = remember { mutableStateOf(false) }
 
     val activityRecognitionManager: ActivityRecognitionManager = koinInject()
 
@@ -101,38 +82,6 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
         return enabledServices?.contains(serviceName) == true
     }
 
-    suspend fun maybeShowAccessibilityTutorialOnce() {
-        if (hasEvaluatedAccessibilityTutorial.value) return
-        hasEvaluatedAccessibilityTutorial.value = true
-
-        val prefs = context.hayahSettingsDataStore.data.first()
-        val alreadyShown = prefs[keyAccessibilityTutorialShown] ?: false
-        if (alreadyShown) return
-
-        if (!isAccessibilityServiceEnabled()) {
-            showAccessibilityTutorialDialog.value = true
-            // Persist immediately so it won't reappear even if user closes without enabling.
-            context.hayahSettingsDataStore.edit {
-                it[keyAccessibilityTutorialShown] = true
-            }
-        }
-    }
-
-    suspend fun maybeShowDisclosureOnce() {
-        if (hasEvaluatedDisclosure.value) return
-        hasEvaluatedDisclosure.value = true
-
-        val prefs = context.hayahSettingsDataStore.data.first()
-        val accepted = prefs[KEY_DISCLOSURE_ACCEPTED] ?: false
-        val declined = prefs[KEY_DISCLOSURE_DECLINED] ?: false
-
-        when {
-            accepted -> maybeShowAccessibilityTutorialOnce()
-            declined -> { /* User declined, do not request accessibility service */ }
-            else -> showAccessibilityDisclosureDialog.value = true
-        }
-    }
-
     // 1. Set up the Compose Permission Launcher
     val permissionLauncher =
         rememberLauncherForActivityResult(
@@ -142,9 +91,7 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
             if (activityGranted || Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 activityRecognitionManager.startTracking()
             }
-            coroutineScope.launch {
-                maybeShowDisclosureOnce()
-            }
+            viewModel.evaluateInitialDialogs(isAccessibilityServiceEnabled())
         }
 
     // 2. Trigger the permission check safely when the screen loads
@@ -174,7 +121,7 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
         } else {
             // All permissions already granted
             activityRecognitionManager.startTracking()
-            maybeShowDisclosureOnce()
+            viewModel.evaluateInitialDialogs(isAccessibilityServiceEnabled())
         }
     }
 
@@ -203,27 +150,16 @@ fun HomeScreen(viewModel: HomeViewModel = koinViewModel()) {
         )
     }
 
-    if (showAccessibilityDisclosureDialog.value) {
+    if (uiState.showDisclosureDialog) {
         AccessibilityDisclosureDialog(
-            onAccept = {
-                showAccessibilityDisclosureDialog.value = false
-                coroutineScope.launch {
-                    context.hayahSettingsDataStore.edit { it[KEY_DISCLOSURE_ACCEPTED] = true }
-                    maybeShowAccessibilityTutorialOnce()
-                }
-            },
-            onDecline = {
-                showAccessibilityDisclosureDialog.value = false
-                coroutineScope.launch {
-                    context.hayahSettingsDataStore.edit { it[KEY_DISCLOSURE_DECLINED] = true }
-                }
-            },
+            onAccept = { viewModel.acceptDisclosure(isAccessibilityServiceEnabled()) },
+            onDecline = { viewModel.declineDisclosure() },
         )
     }
 
-    if (showAccessibilityTutorialDialog.value) {
+    if (uiState.showTutorialDialog) {
         AccessibilityTutorialDialog(
-            onClose = { showAccessibilityTutorialDialog.value = false },
+            onClose = { viewModel.dismissTutorial() },
         )
     }
 
