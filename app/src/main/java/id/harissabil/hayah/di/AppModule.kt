@@ -1,5 +1,7 @@
 package id.harissabil.hayah.di
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import id.harissabil.hayah.BuildConfig
 import id.harissabil.hayah.data.ai.VerseRecommendationService
@@ -7,6 +9,8 @@ import id.harissabil.hayah.data.api.RetrofitClient
 import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.AuthStateManager
 import id.harissabil.hayah.data.db.HayahDatabase
+import id.harissabil.hayah.data.settings.SettingsRepository
+import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.ActivityRecognitionManager
 import id.harissabil.hayah.service.NotificationHelper
 import id.harissabil.hayah.service.ReminderOrchestrator
@@ -38,6 +42,10 @@ val appModule =
         single { get<HayahDatabase>().journalEntryDao() }
         single { get<HayahDatabase>().readHistoryDao() }
 
+        // ── Settings ─────────────────────────────
+        single<DataStore<Preferences>> { androidContext().hayahSettingsDataStore }
+        single { SettingsRepository(get()) }
+
         // ── Auth data layer ──────────────────────
         single { AuthStateManager(androidContext()) }
         single { RetrofitClient.create() }
@@ -57,7 +65,7 @@ val appModule =
         single { ActivityRecognitionManager(androidContext()) }
         single {
             ReminderOrchestrator(
-                context = androidContext(),
+                settingsRepository = get(),
                 authRepository = get(),
                 keywordCacheDao = get(),
                 journalEntryDao = get(),
@@ -72,7 +80,7 @@ val appModule =
         viewModel {
             HomeViewModel(
                 authRepository = get(),
-                context = androidContext(),
+                settingsRepository = get(),
                 journalEntryDao = get(),
                 quranApiService = get(),
                 verseRecommendationService = get(),
@@ -81,7 +89,7 @@ val appModule =
         }
         viewModel { OnboardingViewModel() }
         viewModel { JournalViewModel(get()) }
-        viewModel { SettingsViewModel(androidContext(), get(), get()) }
+        viewModel { SettingsViewModel(androidContext(), get(), get(), get()) }
         viewModel {
             QuranReadingViewModel(
                 savedStateHandle = get(),
@@ -89,7 +97,7 @@ val appModule =
                 authRepository = get(),
                 readHistoryDao = get(),
                 journalEntryDao = get(),
-                context = androidContext(),
+                settingsRepository = get(),
             )
         }
     }
