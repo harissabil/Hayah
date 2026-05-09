@@ -44,6 +44,8 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +60,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import id.harissabil.hayah.BuildConfig
+import id.harissabil.hayah.ui.screens.home.components.AccessibilityDisclosureDialog
+import id.harissabil.hayah.ui.screens.home.components.AccessibilityTutorialDialog
 import id.harissabil.hayah.ui.screens.settings.components.AppearancePicker
 import id.harissabil.hayah.ui.screens.settings.components.MyKeywordsSection
 import id.harissabil.hayah.ui.screens.settings.components.PermissionRow
@@ -77,6 +81,8 @@ fun SettingsScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val lifecycleState by lifecycleOwner.lifecycle.currentStateFlow.collectAsStateWithLifecycle()
+    val showDisclosureFromSettings = remember { mutableStateOf(false) }
+    val showTutorialFromSettings = remember { mutableStateOf(false) }
 
     // Refresh accessibility state when screen resumes (user might toggle it in system settings)
     LaunchedEffect(lifecycleState) {
@@ -159,6 +165,26 @@ fun SettingsScreen(
                     Text("Close")
                 }
             },
+        )
+    }
+
+    if (showDisclosureFromSettings.value) {
+        AccessibilityDisclosureDialog(
+            onAccept = {
+                showDisclosureFromSettings.value = false
+                viewModel.acceptDisclosure()
+                showTutorialFromSettings.value = true
+            },
+            onDecline = {
+                showDisclosureFromSettings.value = false
+                viewModel.declineDisclosure()
+            },
+        )
+    }
+
+    if (showTutorialFromSettings.value) {
+        AccessibilityTutorialDialog(
+            onClose = { showTutorialFromSettings.value = false },
         )
     }
 
@@ -476,11 +502,15 @@ fun SettingsScreen(
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
                                         .clickable {
-                                            context.startActivity(
-                                                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                                },
-                                            )
+                                            if (uiState.isDisclosureAccepted) {
+                                                context.startActivity(
+                                                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                                    },
+                                                )
+                                            } else {
+                                                showDisclosureFromSettings.value = true
+                                            }
                                         }.padding(horizontal = 16.dp, vertical = 6.dp),
                             ) {
                                 Text(

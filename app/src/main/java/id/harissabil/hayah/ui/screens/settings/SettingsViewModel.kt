@@ -2,12 +2,6 @@ package id.harissabil.hayah.ui.screens.settings
 
 import android.content.Context
 import android.provider.Settings
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.longPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
@@ -16,14 +10,12 @@ import id.harissabil.hayah.data.api.QuranApiService
 import id.harissabil.hayah.data.auth.AuthRepository
 import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.model.RecitationItem
-import id.harissabil.hayah.data.settings.KEY_CUSTOM_KEYWORDS
-import id.harissabil.hayah.data.settings.hayahSettingsDataStore
+import id.harissabil.hayah.data.settings.SettingsRepository
 import id.harissabil.hayah.service.HayahAccessibilityService
 import id.harissabil.hayah.service.executeWithNetworkRetry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -49,23 +41,16 @@ data class SettingsUiState(
     val reciterError: String? = null,
     val customKeywords: Set<String> = emptySet(),
     val isAddKeywordDialogOpen: Boolean = false,
+    val isDisclosureAccepted: Boolean = false,
 )
 
 class SettingsViewModel(
     private val context: Context,
+    private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository,
     private val quranApiService: QuranApiService,
 ) : ViewModel() {
     companion object {
-        val KEY_PLAY_AUDIO = booleanPreferencesKey("play_audio_instantly")
-        val KEY_MAX_REMINDERS = floatPreferencesKey("max_reminders")
-        val KEY_QUIET_DURATION = floatPreferencesKey("quiet_duration_minutes")
-        val KEY_DETECTION_THRESHOLD = floatPreferencesKey("detection_threshold")
-        val KEY_APP_THEME = stringPreferencesKey("app_theme")
-        val KEY_RECITER_ID = intPreferencesKey("reciter_id")
-        val KEY_RECITER_NAME = stringPreferencesKey("reciter_name")
-        private val KEY_RECITERS_CACHE_JSON = stringPreferencesKey("reciters_cache_json")
-        private val KEY_RECITERS_CACHE_TIME = longPreferencesKey("reciters_cache_time")
         private const val RECITERS_CACHE_TTL_MS = 30L * 24 * 60 * 60 * 1000
     }
 
@@ -80,21 +65,22 @@ class SettingsViewModel(
 
     private fun loadPersistedSettings() {
         viewModelScope.launch {
-            context.hayahSettingsDataStore.data.collect { prefs ->
+            settingsRepository.settingsFlow.collect { prefs ->
                 _uiState.update {
                     it.copy(
-                        playAudioInstantly = prefs[KEY_PLAY_AUDIO] ?: true,
-                        maxReminders = prefs[KEY_MAX_REMINDERS] ?: 5f,
-                        quietDuration = prefs[KEY_QUIET_DURATION] ?: 5f,
-                        detectionThreshold = prefs[KEY_DETECTION_THRESHOLD] ?: 3f,
+                        playAudioInstantly = prefs[SettingsRepository.KEY_PLAY_AUDIO] ?: true,
+                        maxReminders = prefs[SettingsRepository.KEY_MAX_REMINDERS] ?: 5f,
+                        quietDuration = prefs[SettingsRepository.KEY_QUIET_DURATION] ?: 5f,
+                        detectionThreshold = prefs[SettingsRepository.KEY_DETECTION_THRESHOLD] ?: 3f,
                         appTheme =
-                            prefs[KEY_APP_THEME]?.let { themeStr ->
+                            prefs[SettingsRepository.KEY_APP_THEME]?.let { themeStr ->
                                 AppTheme.entries.find { it.name == themeStr }
                             } ?: AppTheme.SYSTEM,
-                        reciterId = prefs[KEY_RECITER_ID] ?: 7,
-                        reciterName = prefs[KEY_RECITER_NAME] ?: "Mishary Rashid Alafasy",
+                        reciterId = prefs[SettingsRepository.KEY_RECITER_ID] ?: 7,
+                        reciterName = prefs[SettingsRepository.KEY_RECITER_NAME] ?: "Mishary Rashid Alafasy",
                         isAccessibilityEnabled = isAccessibilityServiceEnabled(),
-                        customKeywords = prefs[KEY_CUSTOM_KEYWORDS] ?: emptySet(),
+                        customKeywords = prefs[SettingsRepository.KEY_CUSTOM_KEYWORDS] ?: emptySet(),
+                        isDisclosureAccepted = prefs[SettingsRepository.KEY_DISCLOSURE_ACCEPTED] ?: false,
                     )
                 }
             }
@@ -108,35 +94,35 @@ class SettingsViewModel(
     fun onPlayAudioToggled(enabled: Boolean) {
         _uiState.update { it.copy(playAudioInstantly = enabled) }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit { it[KEY_PLAY_AUDIO] = enabled }
+            settingsRepository.set(SettingsRepository.KEY_PLAY_AUDIO, enabled)
         }
     }
 
     fun onMaxRemindersChanged(value: Float) {
         _uiState.update { it.copy(maxReminders = value) }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit { it[KEY_MAX_REMINDERS] = value }
+            settingsRepository.set(SettingsRepository.KEY_MAX_REMINDERS, value)
         }
     }
 
     fun onQuietDurationChanged(value: Float) {
         _uiState.update { it.copy(quietDuration = value) }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit { it[KEY_QUIET_DURATION] = value }
+            settingsRepository.set(SettingsRepository.KEY_QUIET_DURATION, value)
         }
     }
 
     fun onDetectionThresholdChanged(value: Float) {
         _uiState.update { it.copy(detectionThreshold = value) }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit { it[KEY_DETECTION_THRESHOLD] = value }
+            settingsRepository.set(SettingsRepository.KEY_DETECTION_THRESHOLD, value)
         }
     }
 
     fun onThemeSelected(theme: AppTheme) {
         _uiState.update { it.copy(appTheme = theme) }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit { it[KEY_APP_THEME] = theme.name }
+            settingsRepository.set(SettingsRepository.KEY_APP_THEME, theme.name)
         }
     }
 
@@ -162,10 +148,7 @@ class SettingsViewModel(
             )
         }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit {
-                it[KEY_RECITER_ID] = id
-                it[KEY_RECITER_NAME] = name
-            }
+            settingsRepository.saveReciterSelection(id, name)
         }
     }
 
@@ -183,7 +166,7 @@ class SettingsViewModel(
         val updated = _uiState.value.customKeywords + trimmed
         _uiState.update { it.copy(customKeywords = updated, isAddKeywordDialogOpen = false) }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit { it[KEY_CUSTOM_KEYWORDS] = updated }
+            settingsRepository.set(SettingsRepository.KEY_CUSTOM_KEYWORDS, updated)
         }
     }
 
@@ -191,7 +174,19 @@ class SettingsViewModel(
         val updated = _uiState.value.customKeywords - keyword
         _uiState.update { it.copy(customKeywords = updated) }
         viewModelScope.launch {
-            context.hayahSettingsDataStore.edit { it[KEY_CUSTOM_KEYWORDS] = updated }
+            settingsRepository.set(SettingsRepository.KEY_CUSTOM_KEYWORDS, updated)
+        }
+    }
+
+    fun acceptDisclosure() {
+        viewModelScope.launch {
+            settingsRepository.setDisclosureAccepted()
+        }
+    }
+
+    fun declineDisclosure() {
+        viewModelScope.launch {
+            settingsRepository.setDisclosureDeclined()
         }
     }
 
@@ -201,12 +196,11 @@ class SettingsViewModel(
 
             _uiState.update { it.copy(isRecitersLoading = true, reciterError = null) }
 
-            val prefs = context.hayahSettingsDataStore.data.first()
-            val cachedJson = prefs[KEY_RECITERS_CACHE_JSON]
-            val cachedAt = prefs[KEY_RECITERS_CACHE_TIME] ?: 0L
+            val cachedJson = settingsRepository.get(SettingsRepository.KEY_RECITERS_CACHE_JSON, "")
+            val cachedAt = settingsRepository.get(SettingsRepository.KEY_RECITERS_CACHE_TIME, 0L)
             val now = System.currentTimeMillis()
 
-            if (!cachedJson.isNullOrBlank() && now - cachedAt < RECITERS_CACHE_TTL_MS) {
+            if (cachedJson.isNotBlank() && now - cachedAt < RECITERS_CACHE_TTL_MS) {
                 val cached = parseReciterOptions(cachedJson)
                 if (cached.isNotEmpty()) {
                     _uiState.update {
@@ -247,10 +241,7 @@ class SettingsViewModel(
                         .distinctBy { it.id }
                         .sortedBy { it.name.lowercase() }
 
-                context.hayahSettingsDataStore.edit {
-                    it[KEY_RECITERS_CACHE_JSON] = gson.toJson(options)
-                    it[KEY_RECITERS_CACHE_TIME] = now
-                }
+                settingsRepository.saveRecitersCache(gson.toJson(options), now)
 
                 _uiState.update {
                     it.copy(
