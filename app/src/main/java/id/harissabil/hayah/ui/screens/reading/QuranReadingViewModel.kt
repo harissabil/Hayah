@@ -1,9 +1,7 @@
 package id.harissabil.hayah.ui.screens.reading
 
-import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,7 +13,7 @@ import id.harissabil.hayah.data.db.dao.ReadHistoryDao
 import id.harissabil.hayah.data.db.entity.ReadHistoryEntity
 import id.harissabil.hayah.data.model.ActivityDayRequest
 import id.harissabil.hayah.data.model.VerseDetail
-import id.harissabil.hayah.data.settings.hayahSettingsDataStore
+import id.harissabil.hayah.data.settings.SettingsRepository
 import id.harissabil.hayah.service.executeWithNetworkRetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -26,7 +24,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
@@ -73,7 +70,7 @@ class QuranReadingViewModel(
     private val authRepository: AuthRepository,
     private val readHistoryDao: ReadHistoryDao,
     private val journalEntryDao: JournalEntryDao,
-    private val context: Context,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     companion object {
         private const val TAG = "QuranReadingVM"
@@ -82,7 +79,6 @@ class QuranReadingViewModel(
         private const val AUDIO_CDN_BASE = "https://verses.quran.com/"
         private const val PROGRESS_POLL_MS = 500L
         private const val AUDIO_FETCH_CONCURRENCY = 3
-        private val KEY_RECITER_ID = intPreferencesKey("reciter_id")
         private const val DEFAULT_RECITER_ID = 7
     }
 
@@ -194,8 +190,7 @@ class QuranReadingViewModel(
                 return@launch
             }
 
-            val prefs = context.hayahSettingsDataStore.data.first()
-            val reciterId = prefs[KEY_RECITER_ID] ?: DEFAULT_RECITER_ID
+            val reciterId = settingsRepository.get(SettingsRepository.KEY_RECITER_ID, DEFAULT_RECITER_ID)
 
             val semaphore = Semaphore(AUDIO_FETCH_CONCURRENCY)
             val results =

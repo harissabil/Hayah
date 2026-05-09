@@ -1,10 +1,6 @@
 package id.harissabil.hayah.service
 
-import android.content.Context
 import android.util.Log
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.floatPreferencesKey
-import androidx.datastore.preferences.core.intPreferencesKey
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import id.harissabil.hayah.data.ai.VerseRecommendationService
@@ -16,11 +12,10 @@ import id.harissabil.hayah.data.db.dao.KeywordCacheDao
 import id.harissabil.hayah.data.db.entity.JournalEntryEntity
 import id.harissabil.hayah.data.db.entity.KeywordCacheEntity
 import id.harissabil.hayah.data.model.CachedVerse
-import id.harissabil.hayah.data.settings.hayahSettingsDataStore
+import id.harissabil.hayah.data.settings.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -39,7 +34,7 @@ import java.util.Calendar
  * 5. Inserts JournalEntryEntity into Room
  */
 class ReminderOrchestrator(
-    private val context: Context,
+    private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository,
     private val keywordCacheDao: KeywordCacheDao,
     private val journalEntryDao: JournalEntryDao,
@@ -49,11 +44,6 @@ class ReminderOrchestrator(
 ) {
     companion object {
         private const val TAG = "ReminderOrchestrator"
-        val KEY_PLAY_AUDIO = booleanPreferencesKey("play_audio_instantly")
-        val KEY_RECITER_ID = intPreferencesKey("reciter_id")
-        private val KEY_MAX_REMINDERS = floatPreferencesKey("max_reminders")
-        private val KEY_QUIET_DURATION = floatPreferencesKey("quiet_duration_minutes")
-        private val KEY_DETECTION_THRESHOLD = floatPreferencesKey("detection_threshold")
         private const val DEFAULT_RECITER_ID = 7 // Mishary Rashid Alafasy
         private const val DEFAULT_MAX_REMINDERS = 5
         private const val DEFAULT_QUIET_DURATION_MINUTES = 10f
@@ -91,10 +81,10 @@ class ReminderOrchestrator(
     private suspend fun processKeyword(keyword: String) {
         val now = System.currentTimeMillis()
         val todayStart = todayStartMillis()
-        val prefs = context.hayahSettingsDataStore.data.first()
 
         val detectionThreshold =
-            (prefs[KEY_DETECTION_THRESHOLD] ?: DEFAULT_DETECTION_THRESHOLD)
+            settingsRepository
+                .get(SettingsRepository.KEY_DETECTION_THRESHOLD, DEFAULT_DETECTION_THRESHOLD)
                 .toInt()
                 .coerceAtLeast(1)
         if (!passesDetectionThreshold(keyword, detectionThreshold)) {
@@ -103,7 +93,8 @@ class ReminderOrchestrator(
         }
 
         val maxDailyReminders =
-            (prefs[KEY_MAX_REMINDERS] ?: DEFAULT_MAX_REMINDERS.toFloat())
+            settingsRepository
+                .get(SettingsRepository.KEY_MAX_REMINDERS, DEFAULT_MAX_REMINDERS.toFloat())
                 .toInt()
                 .coerceAtLeast(1)
 
@@ -115,7 +106,8 @@ class ReminderOrchestrator(
         }
 
         val quietDurationMinutes =
-            (prefs[KEY_QUIET_DURATION] ?: DEFAULT_QUIET_DURATION_MINUTES)
+            settingsRepository
+                .get(SettingsRepository.KEY_QUIET_DURATION, DEFAULT_QUIET_DURATION_MINUTES)
                 .coerceAtLeast(1f)
         val cooldownMs = (quietDurationMinutes * 60_000f).toLong()
 
@@ -165,7 +157,7 @@ class ReminderOrchestrator(
         )
 
         // 4. Read playAudio setting
-        val playAudio = prefs[KEY_PLAY_AUDIO] ?: true
+        val playAudio = settingsRepository.get(SettingsRepository.KEY_PLAY_AUDIO, true)
 
         // 5. Show notification
         notificationHelper.showVerseNotification(keyword, verse, playAudio)
@@ -236,8 +228,7 @@ class ReminderOrchestrator(
         }
 
         // Read reciter preference
-        val prefs = context.hayahSettingsDataStore.data.first()
-        val reciterId = prefs[KEY_RECITER_ID] ?: DEFAULT_RECITER_ID
+        val reciterId = settingsRepository.get(SettingsRepository.KEY_RECITER_ID, DEFAULT_RECITER_ID)
 
         // Step 2: Fetch verse data from Quran.com API
         val versesWithTranslations = mutableListOf<Triple<String, String, CachedVerse>>()

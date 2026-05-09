@@ -195,12 +195,16 @@ fun OnboardingScreen(
                     style = MaterialTheme.typography.labelSmall.copy(textAlign = TextAlign.Center),
                     modifier = Modifier.fillMaxWidth(),
                     onClick = { offset ->
-                        legalText.getStringAnnotations(tag = "TOS", start = offset, end = offset)
-                            .firstOrNull()?.let {
+                        legalText
+                            .getStringAnnotations(tag = "TOS", start = offset, end = offset)
+                            .firstOrNull()
+                            ?.let {
                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it.item)))
                             }
-                        legalText.getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
-                            .firstOrNull()?.let {
+                        legalText
+                            .getStringAnnotations(tag = "PRIVACY", start = offset, end = offset)
+                            .firstOrNull()
+                            ?.let {
                                 context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(it.item)))
                             }
                     },
