@@ -130,6 +130,13 @@ The app requires these permissions at runtime:
 | AI | Firebase AI Logic (Gemini)                              |
 | MCP Client | [MCP Kotlin SDK](https://github.com/modelcontextprotocol/kotlin-sdk) |
 
+## Roadmap
+
+The current keyword matching is rule-based. The plan is to move to a tiered on-device approach:
+
+1. Use MediaPipe text embeddings to detect themes by semantic similarity instead of exact keywords
+2. Add Gemini Nano as a second-pass filter to reduce false positives on supported devices
+
 ## License
 
 See [LICENSE](LICENSE) for details.
