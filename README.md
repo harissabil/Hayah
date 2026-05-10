@@ -1,5 +1,8 @@
 # Hayah
 
+[![Google Play](https://img.shields.io/badge/Google%20Play-Download-green?logo=google-play)](https://play.google.com/store/apps/details?id=id.harissabil.hayah)
+[![Watch Demo](https://img.shields.io/badge/YouTube-Watch%20Demo-red?logo=youtube)](https://www.youtube.com/watch?v=TUdVwVYl3Fk)
+
 Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic reminders by detecting user activities and on-screen content. It combines activity recognition, accessibility services, and Firebase AI to surface relevant verses with personalized reflections.
 
 ## Screenshots
