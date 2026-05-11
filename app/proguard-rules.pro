@@ -42,6 +42,18 @@
 -dontwarn io.modelcontextprotocol.**
 -dontwarn io.ktor.**
 
+# ---------------------------------
+# MediaPipe Tasks Text (semantic detection)
+# ---------------------------------
+
+# MediaPipe uses JNI and reflection internally; the AAR ships no consumer rules.
+-keep class com.google.mediapipe.** { *; }
+-dontwarn com.google.mediapipe.**
+
+# DetectionMode is persisted by name to DataStore and read back via .entries.find { it.name == ... }.
+# Without this, R8 can obfuscate the constant names and break mode restoration on upgrade.
+-keep enum id.harissabil.hayah.ui.screens.settings.DetectionMode { *; }
+
 # Preserve fields annotated with @SerializedName when obfuscating other classes.
 -keepclassmembers,allowobfuscation class * {
 	@com.google.gson.annotations.SerializedName <fields>;
