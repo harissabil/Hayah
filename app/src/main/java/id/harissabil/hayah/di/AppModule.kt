@@ -14,6 +14,7 @@ import id.harissabil.hayah.data.settings.hayahSettingsDataStore
 import id.harissabil.hayah.service.ActivityRecognitionManager
 import id.harissabil.hayah.service.NotificationHelper
 import id.harissabil.hayah.service.ReminderOrchestrator
+import id.harissabil.hayah.service.ThemeEmbeddingManager
 import id.harissabil.hayah.ui.screens.auth.AuthViewModel
 import id.harissabil.hayah.ui.screens.home.HomeViewModel
 import id.harissabil.hayah.ui.screens.journal.JournalViewModel
@@ -63,6 +64,7 @@ val appModule =
         // ── Services ─────────────────────────────
         single { NotificationHelper(androidContext()) }
         single { ActivityRecognitionManager(androidContext()) }
+        single { ThemeEmbeddingManager(androidContext()) }
         single {
             ReminderOrchestrator(
                 settingsRepository = get(),
@@ -89,7 +91,7 @@ val appModule =
         }
         viewModel { OnboardingViewModel() }
         viewModel { JournalViewModel(get()) }
-        viewModel { SettingsViewModel(androidContext(), get(), get(), get()) }
+        viewModel { SettingsViewModel(androidContext(), get(), get(), get(), get()) }
         viewModel {
             QuranReadingViewModel(
                 savedStateHandle = get(),
