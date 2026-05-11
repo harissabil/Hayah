@@ -59,7 +59,7 @@ Also place `google-services.json` from Firebase Console into `app/google-service
 | `data/db` | Room database (`HayahDatabase`) with three tables: `keyword_cache`, `journal_entries`, `read_history` |
 | `data/settings` | Single `DataStore<Preferences>` instance (`hayahSettingsDataStore` extension on `Context`) |
 | `di` | Single Koin `appModule` — all singletons and ViewModels wired here |
-| `service` | Background logic: `HayahAccessibilityService`, `ActivityRecognitionManager`, `ActivityTransitionReceiver`, `ReminderOrchestrator`, `NotificationHelper` |
+| `service` | Background logic: `HayahAccessibilityService`, `ActivityRecognitionManager`, `ActivityTransitionReceiver`, `ReminderOrchestrator`, `NotificationHelper`, `ThemeEmbeddingManager` |
 | `ui` | Compose screens (Home, Journal, Onboarding, QuranReading, Settings) + `HayahNavGraph` |
 
 ### Core reminder pipeline
@@ -67,6 +67,14 @@ Also place `google-services.json` from Firebase Console into `app/google-service
 `HayahAccessibilityService` / `ActivityTransitionReceiver` → `ReminderOrchestrator.onKeywordDetected()` → dedup/cooldown/threshold checks → `VerseRecommendationService.recommendVerses()` (MCP tool-call loop via Gemini) → `QuranApiService` (verse detail + tafsir + audio) → `VerseRecommendationService.generateReflections()` (structured JSON, tafsir-grounded) → `NotificationHelper` → `JournalEntryDao` (persist).
 
 Caching: `KeywordCacheDao` stores up to 5 verses per keyword (JSON in `KeywordCacheEntity.versesJson`); `lastShownIndex` rotates through them on subsequent triggers to avoid repeating the same verse.
+
+#### Detection modes
+
+`HayahAccessibilityService` supports two modes, switchable at runtime via `SettingsRepository` (`KEY_DETECTION_MODE`):
+
+**Keywords mode** — substring match against `TriggerKeywords`; 1 s per-word cooldown; `ReminderOrchestrator` applies a consecutive-hit threshold before forwarding.
+
+**Semantic mode** — on-device MediaPipe `TextEmbedder` (`universal_sentence_encoder.tflite`, ~25 MB, downloaded once to `context.filesDir`). `ThemeEmbeddingManager` pre-computes 512-dim embeddings for 50+ `ThemeDefinition`s from `TriggerKeywords.THEME_DEFINITIONS` (rich descriptions rather than bare keywords, for better embedding quality), plus the user's custom keywords. At runtime, screen text is truncated to 500 chars, embedded, and compared via cosine similarity against all theme embeddings; a match above `KEY_SIMILARITY_THRESHOLD` (default 0.75, user-configurable) is forwarded directly to `ReminderOrchestrator`, bypassing the consecutive-hit threshold entirely. Cooldown is 3 s (vs 1 s in keywords mode).
 
 #### VerseRecommendationService internals
 

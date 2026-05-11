@@ -29,6 +29,8 @@ class SettingsRepository(
         val KEY_DISCLOSURE_ACCEPTED = booleanPreferencesKey("accessibility_disclosure_accepted")
         val KEY_DISCLOSURE_DECLINED = booleanPreferencesKey("accessibility_disclosure_declined")
         val KEY_ACCESSIBILITY_TUTORIAL_SHOWN = booleanPreferencesKey("accessibility_tutorial_shown_once")
+        val KEY_DETECTION_MODE = stringPreferencesKey("detection_mode")
+        val KEY_SIMILARITY_THRESHOLD = floatPreferencesKey("similarity_threshold")
     }
 
     val settingsFlow: Flow<Preferences> = dataStore.data

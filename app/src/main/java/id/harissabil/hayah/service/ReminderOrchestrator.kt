@@ -13,6 +13,7 @@ import id.harissabil.hayah.data.db.entity.JournalEntryEntity
 import id.harissabil.hayah.data.db.entity.KeywordCacheEntity
 import id.harissabil.hayah.data.model.CachedVerse
 import id.harissabil.hayah.data.settings.SettingsRepository
+import id.harissabil.hayah.ui.screens.settings.DetectionMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -82,14 +83,23 @@ class ReminderOrchestrator(
         val now = System.currentTimeMillis()
         val todayStart = todayStartMillis()
 
-        val detectionThreshold =
-            settingsRepository
-                .get(SettingsRepository.KEY_DETECTION_THRESHOLD, DEFAULT_DETECTION_THRESHOLD)
-                .toInt()
-                .coerceAtLeast(1)
-        if (!passesDetectionThreshold(keyword, detectionThreshold)) {
-            Log.d(TAG, "Detection threshold not reached for '$keyword' ($detectionThreshold)")
-            return
+        // Detection threshold only applies in keywords mode.
+        // In semantic mode, the similarity threshold in the accessibility service
+        // already gates whether a keyword is forwarded here.
+        val detectionModeStr =
+            settingsRepository.get(SettingsRepository.KEY_DETECTION_MODE, DetectionMode.KEYWORDS.name)
+        val isKeywordsMode = detectionModeStr == DetectionMode.KEYWORDS.name
+
+        if (isKeywordsMode) {
+            val detectionThreshold =
+                settingsRepository
+                    .get(SettingsRepository.KEY_DETECTION_THRESHOLD, DEFAULT_DETECTION_THRESHOLD)
+                    .toInt()
+                    .coerceAtLeast(1)
+            if (!passesDetectionThreshold(keyword, detectionThreshold)) {
+                Log.d(TAG, "Detection threshold not reached for '$keyword' ($detectionThreshold)")
+                return
+            }
         }
 
         val maxDailyReminders =

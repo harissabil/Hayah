@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import id.harissabil.hayah.data.settings.SettingsRepository
+import id.harissabil.hayah.ui.screens.settings.DetectionMode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,6 +20,10 @@ import org.koin.core.component.inject
  * Accessibility Service that scans notification text and on-screen content
  * for trigger keywords, then forwards them to [ReminderOrchestrator].
  *
+ * Supports two detection modes:
+ * - **Keywords**: Exact keyword matching against a predefined set (default)
+ * - **Semantic**: Cosine similarity via MediaPipe text embeddings
+ *
  * Listens to:
  * - TYPE_NOTIFICATION_STATE_CHANGED (notification content)
  * - TYPE_WINDOW_CONTENT_CHANGED (screen text)
@@ -29,7 +34,8 @@ class HayahAccessibilityService :
     KoinComponent {
     companion object {
         private const val TAG = "HayahAccessibility"
-        private const val SCAN_COOLDOWN_MS = 1000L // avoid processing too frequently
+        private const val SCAN_COOLDOWN_KEYWORDS_MS = 1000L
+        private const val SCAN_COOLDOWN_SEMANTIC_MS = 3000L
         private const val KEYWORD_RETRIGGER_COOLDOWN_MS = 3000L
 
         private val EXCLUDED_PACKAGES =
@@ -42,9 +48,14 @@ class HayahAccessibilityService :
 
     private val orchestrator: ReminderOrchestrator by inject()
     private val settingsRepository: SettingsRepository by inject()
+    private val themeEmbeddingManager: ThemeEmbeddingManager by inject()
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private var customKeywords: Set<String> = emptySet()
+    private var detectionMode: DetectionMode = DetectionMode.KEYWORDS
+    private var similarityThreshold: Float = 0.5f
     private var lastScanTime = 0L
+    private var lastTextHash = 0
     private val recentKeywordTimes = mutableMapOf<String, Long>()
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -61,14 +72,16 @@ class HayahAccessibilityService :
         }
 
         val now = System.currentTimeMillis()
-        if (now - lastScanTime < SCAN_COOLDOWN_MS) return
-
-//        val text = extractText(event)
-//        if (text.isBlank()) return
+        val cooldown =
+            if (detectionMode == DetectionMode.SEMANTIC) {
+                SCAN_COOLDOWN_SEMANTIC_MS
+            } else {
+                SCAN_COOLDOWN_KEYWORDS_MS
+            }
+        if (now - lastScanTime < cooldown) return
 
         val eventText = extractText(event)
         val rootText = extractTextFromNode(rootInActiveWindow)
-
         val combinedText = "$eventText $rootText".trim()
 
         if (combinedText.isBlank()) {
@@ -78,26 +91,9 @@ class HayahAccessibilityService :
 
         lastScanTime = now
 
-        // Scan for trigger keywords
-        val lowerText = combinedText.lowercase()
-        val allKeywords = TriggerKeywords.ISLAMIC_KEYWORDS + customKeywords
-        for (keyword in allKeywords) {
-            if (!lowerText.contains(keyword)) continue
-
-            val lastSeen = recentKeywordTimes[keyword] ?: 0L
-            if (now - lastSeen < KEYWORD_RETRIGGER_COOLDOWN_MS) continue
-
-            Log.d(TAG, "Keyword '$keyword' detected in ${eventTypeName(event.eventType)}")
-            recentKeywordTimes[keyword] = now
-            orchestrator.onKeywordDetected(keyword)
-            // Only trigger one keyword per scan to avoid spam
-            break
-        }
-
-        // Periodic cleanup for stale entries
-        if (recentKeywordTimes.size > 100) {
-            val cutoff = now - (KEYWORD_RETRIGGER_COOLDOWN_MS * 4)
-            recentKeywordTimes.entries.removeAll { it.value < cutoff }
+        when (detectionMode) {
+            DetectionMode.KEYWORDS -> scanWithKeywords(combinedText, now, event.eventType)
+            DetectionMode.SEMANTIC -> scanWithEmbeddings(combinedText, now, event.eventType)
         }
     }
 
@@ -123,9 +119,30 @@ class HayahAccessibilityService :
 
         serviceInfo = info
 
+        // Collect settings changes
         serviceScope.launch {
             settingsRepository.settingsFlow.collect { prefs ->
                 customKeywords = prefs[SettingsRepository.KEY_CUSTOM_KEYWORDS] ?: emptySet()
+
+                val modeStr = prefs[SettingsRepository.KEY_DETECTION_MODE]
+                val newMode =
+                    modeStr?.let { str ->
+                        DetectionMode.entries.find { it.name == str }
+                    } ?: DetectionMode.KEYWORDS
+                val modeChanged = newMode != detectionMode
+                detectionMode = newMode
+
+                similarityThreshold = prefs[SettingsRepository.KEY_SIMILARITY_THRESHOLD] ?: 0.75f
+
+                // Initialize embedder when switching to semantic mode
+                if (modeChanged && detectionMode == DetectionMode.SEMANTIC) {
+                    initializeEmbedder()
+                }
+
+                // Update custom keyword embeddings if embedder is active
+                if (themeEmbeddingManager.isReady()) {
+                    themeEmbeddingManager.updateCustomEmbeddings(customKeywords)
+                }
             }
         }
 
@@ -133,9 +150,78 @@ class HayahAccessibilityService :
     }
 
     override fun onDestroy() {
+        themeEmbeddingManager.close()
         serviceScope.cancel()
         super.onDestroy()
     }
+
+    // ── Detection modes ──────────────────────────
+
+    private fun scanWithKeywords(
+        combinedText: String,
+        now: Long,
+        eventType: Int,
+    ) {
+        val lowerText = combinedText.lowercase()
+        val allKeywords = TriggerKeywords.ISLAMIC_KEYWORDS + customKeywords
+        for (keyword in allKeywords) {
+            if (!lowerText.contains(keyword)) continue
+
+            val lastSeen = recentKeywordTimes[keyword] ?: 0L
+            if (now - lastSeen < KEYWORD_RETRIGGER_COOLDOWN_MS) continue
+
+            Log.d(TAG, "Keyword '$keyword' detected in ${eventTypeName(eventType)}")
+            recentKeywordTimes[keyword] = now
+            orchestrator.onKeywordDetected(keyword)
+            // Only trigger one keyword per scan to avoid spam
+            break
+        }
+
+        // Periodic cleanup for stale entries
+        if (recentKeywordTimes.size > 100) {
+            val cutoff = now - (KEYWORD_RETRIGGER_COOLDOWN_MS * 4)
+            recentKeywordTimes.entries.removeAll { it.value < cutoff }
+        }
+    }
+
+    private fun scanWithEmbeddings(
+        combinedText: String,
+        now: Long,
+        eventType: Int,
+    ) {
+        if (!themeEmbeddingManager.isReady()) {
+            Log.d(TAG, "Embedder not ready, attempting initialization")
+            serviceScope.launch { initializeEmbedder() }
+            return
+        }
+
+        // Skip if the text hasn't changed (avoids redundant inference)
+        val textHash = combinedText.hashCode()
+        if (textHash == lastTextHash) return
+        lastTextHash = textHash
+
+        val match = themeEmbeddingManager.findBestMatch(combinedText, similarityThreshold)
+        if (match != null) {
+            Log.d(
+                TAG,
+                "Semantic match '${match.keyword}' (${String.format("%.1f", match.similarity * 100)}%) " +
+                    "in ${eventTypeName(eventType)}",
+            )
+            orchestrator.onKeywordDetected(match.keyword)
+        }
+    }
+
+    private suspend fun initializeEmbedder() {
+        if (themeEmbeddingManager.isReady()) return
+        if (!themeEmbeddingManager.isModelAvailable()) {
+            Log.w(TAG, "Semantic mode selected but model not downloaded")
+            return
+        }
+        Log.d(TAG, "Initializing embedder for semantic detection")
+        themeEmbeddingManager.initialize(customKeywords)
+    }
+
+    // ── Text extraction ──────────────────────────
 
     private fun extractText(event: AccessibilityEvent): String {
         val builder = StringBuilder()

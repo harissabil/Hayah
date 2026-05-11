@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.RecordVoiceOver
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -63,6 +62,7 @@ import id.harissabil.hayah.BuildConfig
 import id.harissabil.hayah.ui.screens.home.components.AccessibilityDisclosureDialog
 import id.harissabil.hayah.ui.screens.home.components.AccessibilityTutorialDialog
 import id.harissabil.hayah.ui.screens.settings.components.AppearancePicker
+import id.harissabil.hayah.ui.screens.settings.components.DetectionModeSection
 import id.harissabil.hayah.ui.screens.settings.components.MyKeywordsSection
 import id.harissabil.hayah.ui.screens.settings.components.PermissionRow
 import id.harissabil.hayah.ui.screens.settings.components.SettingsIconBox
@@ -386,63 +386,13 @@ fun SettingsScreen(
                     )
                 }
 
-                Column(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp)
-                            .padding(bottom = 16.dp),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        SettingsIconBox(
-                            icon = Icons.Default.Tune,
-                            bg = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.2f),
-                            tint = MaterialTheme.colorScheme.secondary,
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column(
-                            modifier = Modifier.weight(1f),
-                        ) {
-                            Text(
-                                text = "Detection Sensitivity",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                            Text(
-                                text = "Number of detections required before a nudge is sent.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Text(
-                            text = "${uiState.detectionThreshold.toInt()}x",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.secondary,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Slider(
-                        value = uiState.detectionThreshold,
-                        onValueChange = viewModel::onDetectionThresholdChanged,
-                        valueRange = 1f..10f,
-                        steps = 8, // Menghasilkan titik di 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-                        modifier = Modifier.fillMaxWidth(),
-                        colors =
-                            SliderDefaults.colors(
-                                thumbColor = MaterialTheme.colorScheme.secondary,
-                                activeTrackColor = MaterialTheme.colorScheme.secondary,
-                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            ),
-                    )
-                }
+                DetectionModeSection(
+                    uiState = uiState,
+                    onModeSelected = viewModel::onDetectionModeSelected,
+                    onDetectionThresholdChanged = viewModel::onDetectionThresholdChanged,
+                    onSimilarityThresholdChanged = viewModel::onSimilarityThresholdChanged,
+                    onDownloadModel = viewModel::downloadEmbeddingModel,
+                )
             }
 
             // My Keywords

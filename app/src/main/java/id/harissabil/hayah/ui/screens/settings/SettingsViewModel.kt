@@ -12,6 +12,7 @@ import id.harissabil.hayah.data.auth.QuranOAuthConfig
 import id.harissabil.hayah.data.model.RecitationItem
 import id.harissabil.hayah.data.settings.SettingsRepository
 import id.harissabil.hayah.service.HayahAccessibilityService
+import id.harissabil.hayah.service.ThemeEmbeddingManager
 import id.harissabil.hayah.service.executeWithNetworkRetry
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 enum class AppTheme { LIGHT, DARK, SYSTEM }
+
+enum class DetectionMode { KEYWORDS, SEMANTIC }
 
 data class ReciterOption(
     val id: Int,
@@ -31,6 +34,11 @@ data class SettingsUiState(
     val maxReminders: Float = 5f,
     val quietDuration: Float = 5f,
     val detectionThreshold: Float = 3f,
+    val detectionMode: DetectionMode = DetectionMode.KEYWORDS,
+    val similarityThreshold: Float = 0.75f,
+    val isModelDownloaded: Boolean = false,
+    val isModelDownloading: Boolean = false,
+    val modelDownloadProgress: Float = 0f,
     val appTheme: AppTheme = AppTheme.SYSTEM,
     val isAccessibilityEnabled: Boolean = false,
     val reciterName: String = "Mishary Rashid Alafasy",
@@ -49,6 +57,7 @@ class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val authRepository: AuthRepository,
     private val quranApiService: QuranApiService,
+    private val themeEmbeddingManager: ThemeEmbeddingManager,
 ) : ViewModel() {
     companion object {
         private const val RECITERS_CACHE_TTL_MS = 30L * 24 * 60 * 60 * 1000
@@ -61,6 +70,8 @@ class SettingsViewModel(
 
     init {
         loadPersistedSettings()
+        checkModelStatus()
+        collectDownloadState()
     }
 
     private fun loadPersistedSettings() {
@@ -72,6 +83,11 @@ class SettingsViewModel(
                         maxReminders = prefs[SettingsRepository.KEY_MAX_REMINDERS] ?: 5f,
                         quietDuration = prefs[SettingsRepository.KEY_QUIET_DURATION] ?: 5f,
                         detectionThreshold = prefs[SettingsRepository.KEY_DETECTION_THRESHOLD] ?: 3f,
+                        detectionMode =
+                            prefs[SettingsRepository.KEY_DETECTION_MODE]?.let { modeStr ->
+                                DetectionMode.entries.find { it.name == modeStr }
+                            } ?: DetectionMode.KEYWORDS,
+                        similarityThreshold = prefs[SettingsRepository.KEY_SIMILARITY_THRESHOLD] ?: 0.75f,
                         appTheme =
                             prefs[SettingsRepository.KEY_APP_THEME]?.let { themeStr ->
                                 AppTheme.entries.find { it.name == themeStr }
@@ -83,6 +99,50 @@ class SettingsViewModel(
                         isDisclosureAccepted = prefs[SettingsRepository.KEY_DISCLOSURE_ACCEPTED] ?: false,
                     )
                 }
+            }
+        }
+    }
+
+    private fun checkModelStatus() {
+        _uiState.update { it.copy(isModelDownloaded = themeEmbeddingManager.isModelAvailable()) }
+    }
+
+    private fun collectDownloadState() {
+        viewModelScope.launch {
+            themeEmbeddingManager.isDownloading.collect { downloading ->
+                _uiState.update { it.copy(isModelDownloading = downloading) }
+            }
+        }
+        viewModelScope.launch {
+            themeEmbeddingManager.downloadProgress.collect { progress ->
+                _uiState.update { it.copy(modelDownloadProgress = progress) }
+            }
+        }
+    }
+
+    fun onDetectionModeSelected(mode: DetectionMode) {
+        if (mode == DetectionMode.SEMANTIC && !_uiState.value.isModelDownloaded) {
+            // Can't switch to semantic without the model
+            return
+        }
+        _uiState.update { it.copy(detectionMode = mode) }
+        viewModelScope.launch {
+            settingsRepository.set(SettingsRepository.KEY_DETECTION_MODE, mode.name)
+        }
+    }
+
+    fun onSimilarityThresholdChanged(value: Float) {
+        _uiState.update { it.copy(similarityThreshold = value) }
+        viewModelScope.launch {
+            settingsRepository.set(SettingsRepository.KEY_SIMILARITY_THRESHOLD, value)
+        }
+    }
+
+    fun downloadEmbeddingModel() {
+        viewModelScope.launch {
+            val success = themeEmbeddingManager.downloadModel()
+            if (success) {
+                _uiState.update { it.copy(isModelDownloaded = true) }
             }
         }
     }

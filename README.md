@@ -7,6 +7,16 @@ The modern world is loud and overwhelming. For busy Muslims, finding the right m
 
 Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic reminders by detecting user activities and on-screen content. It combines activity recognition, accessibility services, and Firebase AI to surface relevant verses with personalized reflections.
 
+## Table of Contents
+
+- [Screenshots](#screenshots)
+- [Features](#features)
+- [How It Works](#how-it-works)
+- [Getting Started](#getting-started)
+- [Architecture](#architecture)
+- [Roadmap](#roadmap)
+- [License](#license)
+
 ## Screenshots
 
 <table>
@@ -34,13 +44,64 @@ Hayah (Arabic for "life") is an Android app that delivers context-aware Quranic 
 
 ## Features
 
-- **Context-Aware Reminders**: Detects keywords from notifications and screen content via accessibility service, delivers relevant Quranic verses
+- **Context-Aware Reminders**: Scans notifications and on-screen content via accessibility service, delivers relevant Quranic verses
+  - **Keywords mode**: fast, exact substring matching against a predefined keyword list
+  - **Semantic mode**: on-device text embeddings that detect topics by meaning, no exact match needed
 - **Activity Recognition**: Responds to physical activities (walking, driving, etc.) with appropriate spiritual reminders
 - **MCP-Grounded Verse Recommendations**: Connects to [mcp.quran.ai](https://mcp.quran.ai) via Model Context Protocol so Gemini retrieves real verses through tool calls to reduce hallucinated references
 - **AI-Powered Reflections**: Uses Firebase AI Logic (Gemini) to generate short reflections grounded in verse translation and Ibn Kathir tafsir
 - **Quran Reader**: Full-page reading with Uthmani Arabic and English translation, tracks reading progress
 - **Journal**: History of all reminders with verse details, reflections, and audio playback
 - **Quran.com Integration**: OAuth authentication, verse fetching, audio recitations, activity reporting
+
+## How It Works
+
+The reminder pipeline has two stages: detecting a relevant context on the device, then fetching and generating the right verse for it.
+
+```mermaid
+flowchart TD
+    classDef det fill:#dbeafe,stroke:#3b82f6,color:#1e3a8a
+    classDef orch fill:#fef9c3,stroke:#ca8a04,color:#713f12
+    classDef rec fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef out fill:#f3e8ff,stroke:#9333ea,color:#581c87
+
+    subgraph Detection
+        A["On-screen content & notifications"]
+        B["HayahAccessibilityService"]
+        C["Keywords mode\nsubstring matching"]
+        D["Semantic mode\ntext embeddings"]
+    end
+
+    subgraph Orchestration
+        E["ReminderOrchestrator\ndedup · cooldown"]
+        F{Cached?}
+        G["Cached verses\nrotated by index"]
+    end
+
+    subgraph Recommendation
+        H["Gemini + mcp.quran.ai\nMCP tool-call loop → verse keys"]
+        I["Quran Foundation API\nverse · tafsir · audio"]
+        J["Gemini reflection\nTafsir-grounded"]
+        K[Save to cache]
+    end
+
+    L["Notification & Journal entry"]
+
+    A --> B
+    B --> C & D
+    C & D --> E
+    E --> F
+    F -- hit --> G
+    F -- miss --> H
+    H --> I --> J --> K
+    G --> L
+    K --> L
+
+    class A,B,C,D det
+    class E,F,G orch
+    class H,I,J,K rec
+    class L out
+```
 
 ## Getting Started
 
@@ -132,15 +193,12 @@ The app requires these permissions at runtime:
 | Networking | Retrofit, OkHttp                                        |
 | Persistence | Room, DataStore                                         |
 | Auth | AppAuth (OAuth 2.0 + PKCE)                              |
-| AI | Firebase AI Logic (Gemini)                              |
+| AI | Firebase AI Logic (Gemini), MediaPipe Tasks (text embeddings) |
 | MCP Client | [MCP Kotlin SDK](https://github.com/modelcontextprotocol/kotlin-sdk) |
 
 ## Roadmap
 
-The current keyword matching is rule-based. The plan is to move to a tiered on-device approach:
-
-1. Use MediaPipe text embeddings to detect themes by semantic similarity instead of exact keywords
-2. Add Gemini Nano as a second-pass filter to reduce false positives on supported devices
+- Add Gemini Nano as a second-pass filter to reduce false positives on supported devices
 
 ## License
 
