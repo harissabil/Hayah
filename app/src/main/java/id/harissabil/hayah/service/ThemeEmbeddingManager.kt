@@ -45,6 +45,9 @@ class ThemeEmbeddingManager(
     private val _isDownloading = MutableStateFlow(false)
     val isDownloading: StateFlow<Boolean> = _isDownloading.asStateFlow()
 
+    private val _lastInitError = MutableStateFlow<String?>(null)
+    val lastInitError: StateFlow<String?> = _lastInitError.asStateFlow()
+
     private val modelFile: File
         get() = File(context.filesDir, MODEL_FILENAME)
 
@@ -111,12 +114,13 @@ class ThemeEmbeddingManager(
     /**
      * Initializes the TextEmbedder and pre-computes theme embeddings.
      * Must be called after model is downloaded and before [findBestMatch].
+     * Returns true on success, false if the model is unavailable or initialization fails.
      */
-    suspend fun initialize(customKeywords: Set<String> = emptySet()) {
+    suspend fun initialize(customKeywords: Set<String> = emptySet()): Boolean =
         withContext(Dispatchers.IO) {
             if (!isModelAvailable()) {
                 Log.w(TAG, "Cannot initialize — model not downloaded")
-                return@withContext
+                return@withContext false
             }
 
             try {
@@ -139,12 +143,14 @@ class ThemeEmbeddingManager(
 
                 computeThemeEmbeddings()
                 updateCustomEmbeddings(customKeywords)
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to initialize TextEmbedder", e)
+                true
+            } catch (t: Throwable) {
+                Log.e(TAG, "Failed to initialize TextEmbedder", t)
+                _lastInitError.value = "${t.javaClass.simpleName}: ${t.message}"
                 textEmbedder = null
+                false
             }
         }
-    }
 
     /**
      * Finds the theme with the highest cosine similarity to [text].

@@ -392,6 +392,7 @@ fun SettingsScreen(
                     onDetectionThresholdChanged = viewModel::onDetectionThresholdChanged,
                     onSimilarityThresholdChanged = viewModel::onSimilarityThresholdChanged,
                     onDownloadModel = viewModel::downloadEmbeddingModel,
+                    semanticInitError = uiState.semanticInitError,
                 )
             }
 

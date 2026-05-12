@@ -50,9 +50,11 @@
 -keep class com.google.mediapipe.** { *; }
 -dontwarn com.google.mediapipe.**
 
-# DetectionMode is persisted by name to DataStore and read back via .entries.find { it.name == ... }.
-# Without this, R8 can obfuscate the constant names and break mode restoration on upgrade.
+# DetectionMode and AppTheme are persisted by name to DataStore and read back via
+# .entries.find { it.name == ... }. Without these rules, R8 obfuscates constant names
+# and breaks mode/theme restoration when minification is re-enabled.
 -keep enum id.harissabil.hayah.ui.screens.settings.DetectionMode { *; }
+-keep enum id.harissabil.hayah.ui.screens.settings.AppTheme { *; }
 
 # Preserve fields annotated with @SerializedName when obfuscating other classes.
 -keepclassmembers,allowobfuscation class * {

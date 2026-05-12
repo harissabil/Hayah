@@ -50,6 +50,7 @@ data class SettingsUiState(
     val customKeywords: Set<String> = emptySet(),
     val isAddKeywordDialogOpen: Boolean = false,
     val isDisclosureAccepted: Boolean = false,
+    val semanticInitError: String? = null,
 )
 
 class SettingsViewModel(
@@ -72,6 +73,7 @@ class SettingsViewModel(
         loadPersistedSettings()
         checkModelStatus()
         collectDownloadState()
+        collectEmbedderError()
     }
 
     private fun loadPersistedSettings() {
@@ -116,6 +118,14 @@ class SettingsViewModel(
         viewModelScope.launch {
             themeEmbeddingManager.downloadProgress.collect { progress ->
                 _uiState.update { it.copy(modelDownloadProgress = progress) }
+            }
+        }
+    }
+
+    private fun collectEmbedderError() {
+        viewModelScope.launch {
+            themeEmbeddingManager.lastInitError.collect { error ->
+                _uiState.update { it.copy(semanticInitError = error) }
             }
         }
     }
