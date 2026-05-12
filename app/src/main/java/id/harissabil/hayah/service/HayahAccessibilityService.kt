@@ -52,12 +52,13 @@ class HayahAccessibilityService :
     private val orchestrator: ReminderOrchestrator by inject()
     private val settingsRepository: SettingsRepository by inject()
     private val themeEmbeddingManager: ThemeEmbeddingManager by inject()
-    private val serviceScope = CoroutineScope(
-        SupervisorJob() + Dispatchers.IO +
-            CoroutineExceptionHandler { _, t ->
-                Log.e(TAG, "Unhandled exception in service scope", t)
-            },
-    )
+    private val serviceScope =
+        CoroutineScope(
+            SupervisorJob() + Dispatchers.IO +
+                CoroutineExceptionHandler { _, t ->
+                    Log.e(TAG, "Unhandled exception in service scope", t)
+                },
+        )
 
     private val recoveryPrefs by lazy {
         getSharedPreferences("hayah_recovery", MODE_PRIVATE)
@@ -245,7 +246,7 @@ class HayahAccessibilityService :
         Log.d(TAG, "Initializing embedder for semantic detection")
         val success = themeEmbeddingManager.initialize(customKeywords)
 
-        recoveryPrefs.edit(commit = true) {remove(KEY_EMBED_INIT_ATTEMPT)}
+        recoveryPrefs.edit(commit = true) { remove(KEY_EMBED_INIT_ATTEMPT) }
 
         if (!success) {
             Log.e(TAG, "Embedder init failed — reverting to keywords mode")
