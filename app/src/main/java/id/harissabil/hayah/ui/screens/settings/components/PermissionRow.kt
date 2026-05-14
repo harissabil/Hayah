@@ -36,7 +36,10 @@ fun PermissionRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f).padding(end = 8.dp),
+        ) {
             Box(
                 modifier = Modifier.size(40.dp).clip(CircleShape).background(iconBg),
                 contentAlignment = Alignment.Center,

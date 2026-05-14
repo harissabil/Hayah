@@ -141,7 +141,7 @@ private fun AppearanceCard(
                     color = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent,
                     shape = RoundedCornerShape(24.dp),
                 ).clickable { onClick() }
-                .padding(24.dp),
+                .padding(horizontal = 12.dp, vertical = 20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
