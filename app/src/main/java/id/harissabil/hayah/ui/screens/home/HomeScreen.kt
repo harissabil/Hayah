@@ -331,7 +331,7 @@ private fun HomeScreenContent(
     showSystemUi = true,
     showBackground = true,
     device = "spec:width=360dp,height=640dp,dpi=320,isRound=false,chinSize=0dp,orientation=portrait",
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Preview(
     name = "Normal Phone",
@@ -344,18 +344,19 @@ private fun HomeScreenContent(
     showSystemUi = true,
     showBackground = true,
     device = "spec:width=393dp,height=851dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait",
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Composable
 private fun HomeScreenPreview() {
     HayahTheme {
         Scaffold { padding ->
             HomeScreenContent(
-                uiState = HomeUiState(
-                    userName = "Muhammad Haris",
-                    pagesRead = 1000,
-                    selectedPeriod = Period.THIS_WEEK,
-                ),
+                uiState =
+                    HomeUiState(
+                        userName = "Muhammad Haris",
+                        pagesRead = 1000,
+                        selectedPeriod = Period.THIS_WEEK,
+                    ),
                 onPeriodSelected = {},
                 onInstantReflection = {},
                 onRetry = {},

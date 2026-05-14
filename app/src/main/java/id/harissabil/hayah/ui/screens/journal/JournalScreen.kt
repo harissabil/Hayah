@@ -104,7 +104,7 @@ private fun JournalScreenContent(
     showSystemUi = true,
     showBackground = true,
     device = "spec:width=360dp,height=640dp,dpi=320,isRound=false,chinSize=0dp,orientation=portrait",
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Preview(
     name = "Normal Phone",
@@ -117,40 +117,42 @@ private fun JournalScreenContent(
     showSystemUi = true,
     showBackground = true,
     device = "spec:width=393dp,height=851dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait",
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Composable
 private fun JournalScreenPreview() {
     HayahTheme {
         Scaffold { padding ->
             JournalScreenContent(
-                uiState = JournalUiState(
-                    allEntries = listOf(
-                        JournalEntry(
-                            entryId = 1L,
-                            surahVerse = "Al-Baqarah • 2:255 (Ayat Al-Kursi)",
-                            verseKey = "2:255",
-                            tag = "Faith",
-                            tagStyle = TagStyle.PRIMARY,
-                            reflection = "This verse speaks of the eternal throne of Allah and His absolute sovereignty over all creation. A reminder of who truly holds power.",
-                            date = "Mon, 12 May 2025",
-                            isUnread = false,
-                            pageNumber = 42,
-                        ),
-                        JournalEntry(
-                            entryId = 2L,
-                            surahVerse = "Ar-Rahman • 55:13",
-                            verseKey = "55:13",
-                            tag = "Gratitude",
-                            tagStyle = TagStyle.SECONDARY,
-                            reflection = "Which of the favors of your Lord would you deny? A verse of gratitude and reflection on blessings.",
-                            date = "Tue, 13 May 2025",
-                            isUnread = true,
-                            pageNumber = 531,
-                        ),
+                uiState =
+                    JournalUiState(
+                        allEntries =
+                            listOf(
+                                JournalEntry(
+                                    entryId = 1L,
+                                    surahVerse = "Al-Baqarah • 2:255 (Ayat Al-Kursi)",
+                                    verseKey = "2:255",
+                                    tag = "Faith",
+                                    tagStyle = TagStyle.PRIMARY,
+                                    reflection = "This verse speaks of the eternal throne of Allah and His absolute sovereignty over all creation. A reminder of who truly holds power.",
+                                    date = "Mon, 12 May 2025",
+                                    isUnread = false,
+                                    pageNumber = 42,
+                                ),
+                                JournalEntry(
+                                    entryId = 2L,
+                                    surahVerse = "Ar-Rahman • 55:13",
+                                    verseKey = "55:13",
+                                    tag = "Gratitude",
+                                    tagStyle = TagStyle.SECONDARY,
+                                    reflection = "Which of the favors of your Lord would you deny? A verse of gratitude and reflection on blessings.",
+                                    date = "Tue, 13 May 2025",
+                                    isUnread = true,
+                                    pageNumber = 531,
+                                ),
+                            ),
+                        isLoading = false,
                     ),
-                    isLoading = false,
-                ),
                 onQueryChange = {},
                 onEntryClick = { _, _, _ -> },
                 paddingValues = padding,

@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -70,7 +71,6 @@ import id.harissabil.hayah.ui.screens.settings.components.SettingsIconBox
 import id.harissabil.hayah.ui.screens.settings.components.SettingsNavRow
 import id.harissabil.hayah.ui.screens.settings.components.SettingsSection
 import id.harissabil.hayah.ui.screens.settings.components.SettingsSectionLabel
-import androidx.compose.ui.tooling.preview.Preview
 import id.harissabil.hayah.ui.theme.HayahTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -140,8 +140,7 @@ fun SettingsScreen(
                                             .clip(MaterialTheme.shapes.medium)
                                             .clickable {
                                                 viewModel.onReciterSelected(option.id, option.name)
-                                            }
-                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                            }.padding(horizontal = 12.dp, vertical = 10.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
@@ -654,7 +653,7 @@ private fun SettingsScreenContent(
     showSystemUi = true,
     showBackground = true,
     device = "spec:width=360dp,height=640dp,dpi=320,isRound=false,chinSize=0dp,orientation=portrait",
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Preview(
     name = "Normal Phone",
@@ -667,7 +666,7 @@ private fun SettingsScreenContent(
     showSystemUi = true,
     showBackground = true,
     device = "spec:width=393dp,height=851dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait",
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Composable
 private fun SettingsScreenPreview() {
