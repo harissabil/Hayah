@@ -6,8 +6,10 @@ import android.annotation.SuppressLint
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.core.content.edit
 import id.harissabil.hayah.data.settings.SettingsRepository
 import id.harissabil.hayah.ui.screens.settings.DetectionMode
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,6 +39,7 @@ class HayahAccessibilityService :
         private const val SCAN_COOLDOWN_KEYWORDS_MS = 1000L
         private const val SCAN_COOLDOWN_SEMANTIC_MS = 3000L
         private const val KEYWORD_RETRIGGER_COOLDOWN_MS = 3000L
+        private const val KEY_EMBED_INIT_ATTEMPT = "embed_init_in_progress"
 
         private val EXCLUDED_PACKAGES =
             setOf(
@@ -49,7 +52,17 @@ class HayahAccessibilityService :
     private val orchestrator: ReminderOrchestrator by inject()
     private val settingsRepository: SettingsRepository by inject()
     private val themeEmbeddingManager: ThemeEmbeddingManager by inject()
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val serviceScope =
+        CoroutineScope(
+            SupervisorJob() + Dispatchers.IO +
+                CoroutineExceptionHandler { _, t ->
+                    Log.e(TAG, "Unhandled exception in service scope", t)
+                },
+        )
+
+    private val recoveryPrefs by lazy {
+        getSharedPreferences("hayah_recovery", MODE_PRIVATE)
+    }
 
     private var customKeywords: Set<String> = emptySet()
     private var detectionMode: DetectionMode = DetectionMode.KEYWORDS
@@ -217,8 +230,28 @@ class HayahAccessibilityService :
             Log.w(TAG, "Semantic mode selected but model not downloaded")
             return
         }
+
+        // Crash-loop guard: if the previous init attempt crashed (flag survived the process kill),
+        // revert to keywords mode so the service doesn't restart into the same crash.
+        if (recoveryPrefs.getBoolean(KEY_EMBED_INIT_ATTEMPT, false)) {
+            Log.e(TAG, "Previous embedder init crashed — reverting to keywords mode")
+            recoveryPrefs.edit(commit = true) { remove(KEY_EMBED_INIT_ATTEMPT) }
+            settingsRepository.set(SettingsRepository.KEY_DETECTION_MODE, DetectionMode.KEYWORDS.name)
+            return
+        }
+
+        // Synchronous write so the flag is on disk before the crash-prone code runs.
+        recoveryPrefs.edit(commit = true) { putBoolean(KEY_EMBED_INIT_ATTEMPT, true) }
+
         Log.d(TAG, "Initializing embedder for semantic detection")
-        themeEmbeddingManager.initialize(customKeywords)
+        val success = themeEmbeddingManager.initialize(customKeywords)
+
+        recoveryPrefs.edit(commit = true) { remove(KEY_EMBED_INIT_ATTEMPT) }
+
+        if (!success) {
+            Log.e(TAG, "Embedder init failed — reverting to keywords mode")
+            settingsRepository.set(SettingsRepository.KEY_DETECTION_MODE, DetectionMode.KEYWORDS.name)
+        }
     }
 
     // ── Text extraction ──────────────────────────

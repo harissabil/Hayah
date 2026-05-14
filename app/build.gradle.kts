@@ -43,8 +43,8 @@ android {
         applicationId = "id.harissabil.hayah"
         minSdk = 26
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.0.2"
+        versionCode = 3
+        versionName = "0.0.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -70,8 +70,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // TODO: Re-enable once MediaPipe ProGuard rules are resolved.
+            // R8 minification causes NoClassDefFoundError for com.google.mediapipe.framework.Graph
+            // by interfering with the JNI bridge static initializer. Disabling minification is a
+            // temporary workaround; APK size will be larger until this is fixed.
+            isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

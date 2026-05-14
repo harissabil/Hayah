@@ -50,6 +50,7 @@ fun DetectionModeSection(
     onDetectionThresholdChanged: (Float) -> Unit,
     onSimilarityThresholdChanged: (Float) -> Unit,
     onDownloadModel: () -> Unit,
+    semanticInitError: String? = null,
 ) {
     var showInfoDialog by remember { mutableStateOf(false) }
 
@@ -146,6 +147,16 @@ fun DetectionModeSection(
                     )
                 }
             }
+        }
+
+        // Show initialization error (release-build diagnostic)
+        if (semanticInitError != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Semantic mode failed to start: $semanticInitError",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+            )
         }
 
         // Mode-specific controls
