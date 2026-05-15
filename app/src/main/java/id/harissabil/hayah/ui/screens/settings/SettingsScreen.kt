@@ -1,6 +1,7 @@
 package id.harissabil.hayah.ui.screens.settings
 
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.provider.Settings
 import androidx.compose.foundation.background
@@ -53,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
@@ -69,6 +71,7 @@ import id.harissabil.hayah.ui.screens.settings.components.SettingsIconBox
 import id.harissabil.hayah.ui.screens.settings.components.SettingsNavRow
 import id.harissabil.hayah.ui.screens.settings.components.SettingsSection
 import id.harissabil.hayah.ui.screens.settings.components.SettingsSectionLabel
+import id.harissabil.hayah.ui.theme.HayahTheme
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -188,6 +191,58 @@ fun SettingsScreen(
         )
     }
 
+    SettingsScreenContent(
+        uiState = uiState,
+        onLogout = onLogout,
+        onPlayAudioInstantlyToggle = viewModel::onPlayAudioToggled,
+        onMaxRemindersChange = viewModel::onMaxRemindersChanged,
+        onQuietDurationChange = viewModel::onQuietDurationChanged,
+        onDetectionThresholdChange = viewModel::onDetectionThresholdChanged,
+        onDetectionModeChange = viewModel::onDetectionModeSelected,
+        onSimilarityThresholdChange = viewModel::onSimilarityThresholdChanged,
+        onThemeSelected = viewModel::onThemeSelected,
+        onReciterPickerRequested = viewModel::onReciterPickerRequested,
+        onAddKeyword = viewModel::addCustomKeyword,
+        onRemoveKeyword = viewModel::removeCustomKeyword,
+        onAddKeywordDialogRequested = viewModel::onAddKeywordDialogRequested,
+        onAddKeywordDialogDismissed = viewModel::onAddKeywordDialogDismissed,
+        onDownloadModel = viewModel::downloadEmbeddingModel,
+        onAccessibilityEnableClick = {
+            if (uiState.isDisclosureAccepted) {
+                context.startActivity(
+                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    },
+                )
+            } else {
+                showDisclosureFromSettings.value = true
+            }
+        },
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SettingsScreenContent(
+    uiState: SettingsUiState,
+    onLogout: () -> Unit = {},
+    onPlayAudioInstantlyToggle: (Boolean) -> Unit = {},
+    onMaxRemindersChange: (Float) -> Unit = {},
+    onQuietDurationChange: (Float) -> Unit = {},
+    onDetectionThresholdChange: (Float) -> Unit = {},
+    onDetectionModeChange: (DetectionMode) -> Unit = {},
+    onSimilarityThresholdChange: (Float) -> Unit = {},
+    onThemeSelected: (AppTheme) -> Unit = {},
+    onReciterPickerRequested: () -> Unit = {},
+    onAddKeyword: (String) -> Unit = {},
+    onRemoveKeyword: (String) -> Unit = {},
+    onAddKeywordDialogRequested: () -> Unit = {},
+    onAddKeywordDialogDismissed: () -> Unit = {},
+    onDownloadModel: () -> Unit = {},
+    onAccessibilityEnableClick: () -> Unit = {},
+) {
+    val context = LocalContext.current
+
     Column(
         modifier =
             Modifier
@@ -227,7 +282,7 @@ fun SettingsScreen(
                     iconTint = MaterialTheme.colorScheme.secondary,
                     title = "Preferred Reciter",
                     subtitle = uiState.reciterName,
-                    onClick = viewModel::onReciterPickerRequested,
+                    onClick = onReciterPickerRequested,
                 )
             }
 
@@ -264,7 +319,7 @@ fun SettingsScreen(
                     }
                     Switch(
                         checked = uiState.playAudioInstantly,
-                        onCheckedChange = viewModel::onPlayAudioToggled,
+                        onCheckedChange = onPlayAudioInstantlyToggle,
                         colors =
                             SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
@@ -317,7 +372,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Slider(
                         value = uiState.maxReminders,
-                        onValueChange = viewModel::onMaxRemindersChanged,
+                        onValueChange = onMaxRemindersChange,
                         valueRange = 1f..10f,
                         steps = 8,
                         modifier = Modifier.fillMaxWidth(),
@@ -373,7 +428,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Slider(
                         value = uiState.quietDuration,
-                        onValueChange = viewModel::onQuietDurationChanged,
+                        onValueChange = onQuietDurationChange,
                         valueRange = 5f..120f,
                         steps = 22, // Menghasilkan lompatan per 5 menit (5, 10, 15, 20... 120)
                         modifier = Modifier.fillMaxWidth(),
@@ -388,10 +443,10 @@ fun SettingsScreen(
 
                 DetectionModeSection(
                     uiState = uiState,
-                    onModeSelected = viewModel::onDetectionModeSelected,
-                    onDetectionThresholdChanged = viewModel::onDetectionThresholdChanged,
-                    onSimilarityThresholdChanged = viewModel::onSimilarityThresholdChanged,
-                    onDownloadModel = viewModel::downloadEmbeddingModel,
+                    onModeSelected = onDetectionModeChange,
+                    onDetectionThresholdChanged = onDetectionThresholdChange,
+                    onSimilarityThresholdChanged = onSimilarityThresholdChange,
+                    onDownloadModel = onDownloadModel,
                     semanticInitError = uiState.semanticInitError,
                 )
             }
@@ -400,10 +455,10 @@ fun SettingsScreen(
             MyKeywordsSection(
                 keywords = uiState.customKeywords,
                 isAddDialogOpen = uiState.isAddKeywordDialogOpen,
-                onAddKeyword = viewModel::addCustomKeyword,
-                onRemoveKeyword = viewModel::removeCustomKeyword,
-                onAddDialogRequested = viewModel::onAddKeywordDialogRequested,
-                onAddDialogDismissed = viewModel::onAddKeywordDialogDismissed,
+                onAddKeyword = onAddKeyword,
+                onRemoveKeyword = onRemoveKeyword,
+                onAddDialogRequested = onAddKeywordDialogRequested,
+                onAddDialogDismissed = onAddKeywordDialogDismissed,
             )
 
             // Appearance
@@ -412,7 +467,7 @@ fun SettingsScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 AppearancePicker(
                     selected = uiState.appTheme,
-                    onSelect = viewModel::onThemeSelected,
+                    onSelect = onThemeSelected,
                 )
             }
 
@@ -452,17 +507,8 @@ fun SettingsScreen(
                                     Modifier
                                         .clip(CircleShape)
                                         .background(MaterialTheme.colorScheme.primary)
-                                        .clickable {
-                                            if (uiState.isDisclosureAccepted) {
-                                                context.startActivity(
-                                                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                                                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                                                    },
-                                                )
-                                            } else {
-                                                showDisclosureFromSettings.value = true
-                                            }
-                                        }.padding(horizontal = 16.dp, vertical = 6.dp),
+                                        .clickable { onAccessibilityEnableClick() }
+                                        .padding(horizontal = 16.dp, vertical = 6.dp),
                             ) {
                                 Text(
                                     "Enable",
@@ -593,5 +639,38 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(80.dp))
         }
+    }
+}
+
+@Preview(
+    name = "Small Phone",
+    showSystemUi = true,
+    showBackground = true,
+    device = "spec:width=360dp,height=640dp,dpi=320,isRound=false,chinSize=0dp,orientation=portrait",
+)
+@Preview(
+    name = "Small Phone",
+    showSystemUi = true,
+    showBackground = true,
+    device = "spec:width=360dp,height=640dp,dpi=320,isRound=false,chinSize=0dp,orientation=portrait",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Preview(
+    name = "Normal Phone",
+    showSystemUi = true,
+    showBackground = true,
+    device = "spec:width=393dp,height=851dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait",
+)
+@Preview(
+    name = "Normal Phone",
+    showSystemUi = true,
+    showBackground = true,
+    device = "spec:width=393dp,height=851dp,dpi=420,isRound=false,chinSize=0dp,orientation=portrait",
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+)
+@Composable
+private fun SettingsScreenPreview() {
+    HayahTheme {
+        SettingsScreenContent(uiState = SettingsUiState())
     }
 }
